@@ -16,7 +16,7 @@ providers:
   - id: firebase
     plugin: "@crashwatch/provider-firebase"
     options:
-      # See provider docs for authentication modes.
+      projectId: "your-gcp-project"
       credentials: "\${GOOGLE_APPLICATION_CREDENTIALS}"
 
 notifiers:
@@ -30,7 +30,8 @@ apps:
     platforms:
       android:
         providerOptions:
-          appId: "1:000000000000:android:0000000000000000000000"
+          # Fully-qualified BigQuery table from your Crashlytics export.
+          bigqueryTable: "your-gcp-project.firebase_crashlytics.example_app_ANDROID"
     providers: [firebase]
     notify: [webhook]
 `;

@@ -17,7 +17,17 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 - Example at `examples/single-app/config.yaml`.
 - Documentation scaffolding under `docs/`.
 
+### Changed
+- `@crashwatch/provider-firebase` now implements `listIssues`, `listEvents`, and
+  `getReport` against the Firebase Crashlytics BigQuery export. Parameterized
+  SQL is in `packages/provider-firebase/src/sql.ts`; row → core-type mappers
+  are in `packages/provider-firebase/src/mappers.ts`.
+- The experimental `firebase-cli` mode was removed. Firebase does not publish
+  a stable public API for Crashlytics issue/event listing, so the export is
+  now the sole supported backend for this provider.
+
 ### Known limitations
-- Firebase provider methods return empty results; real calls pending (see TODOs in `packages/provider-firebase/src/index.ts`).
 - Detector only compares against same-weekday snapshots; other baselines TBD.
 - No integration tests yet.
+- Provider signals (`SIGNAL_REGRESSED`, `SIGNAL_EARLY`) are not present in the
+  BigQuery export; detection leans on events / impacted users counts.

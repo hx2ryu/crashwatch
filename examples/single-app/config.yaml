@@ -13,8 +13,9 @@ providers:
   - id: firebase
     plugin: "@crashwatch/provider-firebase"
     options:
-      mode: firebase-cli          # or "bigquery"
-      # credentials: "${GOOGLE_APPLICATION_CREDENTIALS}"
+      projectId: "my-gcp-project"
+      credentials: "${GOOGLE_APPLICATION_CREDENTIALS}"
+      defaultWindowHours: 24
 
 notifiers:
   - id: slack
@@ -29,7 +30,9 @@ apps:
     platforms:
       android:
         providerOptions:
-          # Any shape the provider expects. For firebase:
-          appId: "1:000000000000:android:0000000000000000000000"
+          bigqueryTable: "my-gcp-project.firebase_crashlytics.example_app_ANDROID"
+      ios:
+        providerOptions:
+          bigqueryTable: "my-gcp-project.firebase_crashlytics.example_app_IOS"
     providers: [firebase]
     notify: [slack]
