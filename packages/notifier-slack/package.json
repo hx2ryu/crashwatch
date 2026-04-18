@@ -1,0 +1,26 @@
+{
+  "name": "@crashwatch/notifier-slack",
+  "version": "0.1.0-alpha.0",
+  "description": "Slack Incoming Webhook notifier for crashwatch.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@crashwatch/notifier-webhook": "workspace:*"
+  },
+  "peerDependencies": {
+    "@crashwatch/core": "workspace:*"
+  }
+}

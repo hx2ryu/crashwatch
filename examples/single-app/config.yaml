@@ -1,0 +1,35 @@
+# Minimal example: one app, Firebase Crashlytics, Slack-compatible webhook.
+# Replace identifiers with your own. See ../../docs/configuration.md.
+
+version: 1
+
+defaults:
+  thresholds:
+    regressionPct: 20
+    newIssueEvents24h: 5
+    regressionSignals: [SIGNAL_REGRESSED, SIGNAL_EARLY]
+
+providers:
+  - id: firebase
+    plugin: "@crashwatch/provider-firebase"
+    options:
+      mode: firebase-cli          # or "bigquery"
+      # credentials: "${GOOGLE_APPLICATION_CREDENTIALS}"
+
+notifiers:
+  - id: slack
+    plugin: "@crashwatch/notifier-webhook"
+    options:
+      url: "${SLACK_WEBHOOK_URL}"
+      bodyTemplate: slack-incoming-webhook
+
+apps:
+  - name: example-app
+    displayName: "Example App"
+    platforms:
+      android:
+        providerOptions:
+          # Any shape the provider expects. For firebase:
+          appId: "1:000000000000:android:0000000000000000000000"
+    providers: [firebase]
+    notify: [slack]

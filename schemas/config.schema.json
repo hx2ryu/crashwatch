@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://crashwatch.dev/schemas/config.schema.json",
+  "title": "Crashwatch config",
+  "type": "object",
+  "required": ["version", "providers", "notifiers", "apps"],
+  "properties": {
+    "version": { "const": 1 },
+    "defaults": {
+      "type": "object",
+      "properties": {
+        "thresholds": { "$ref": "#/$defs/thresholds" },
+        "dismissPatterns": { "type": "array", "items": { "type": "string" } },
+        "notify": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "providers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/pluginRef" }
+    },
+    "notifiers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pluginRef" }
+    },
+    "trackers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pluginRef" }
+    },
+    "apps": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/app" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "pluginRef": {
+      "type": "object",
+      "required": ["id", "plugin"],
+      "properties": {
+        "id": { "type": "string" },
+        "plugin": { "type": "string" },
+        "options": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "thresholds": {
+      "type": "object",
+      "properties": {
+        "regressionPct": { "type": "number", "minimum": 0 },
+        "newIssueEvents24h": { "type": "integer", "minimum": 0 },
+        "regressionSignals": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "app": {
+      "type": "object",
+      "required": ["name", "platforms"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "displayName": { "type": "string" },
+        "owners": { "type": "array", "items": { "type": "string" } },
+        "platforms": {
+          "type": "object",
+          "minProperties": 1,
+          "patternProperties": {
+            "^(android|ios|web|backend|other)$": {
+              "type": "object",
+              "required": ["providerOptions"],
+              "properties": {
+                "providerOptions": { "type": "object" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "providers": { "type": "array", "items": { "type": "string" } },
+        "notify": { "type": "array", "items": { "type": "string" } },
+        "trackers": { "type": "array", "items": { "type": "string" } },
+        "thresholds": { "$ref": "#/$defs/thresholds" },
+        "dismissPatterns": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

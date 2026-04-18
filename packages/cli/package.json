@@ -1,0 +1,27 @@
+{
+  "name": "@crashwatch/cli",
+  "version": "0.1.0-alpha.0",
+  "description": "CLI runner for crashwatch: load config, collect, detect, dispatch.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "crashwatch": "./bin/crashwatch.mjs"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "bin",
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@crashwatch/core": "workspace:*"
+  }
+}
