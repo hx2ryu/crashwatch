@@ -183,9 +183,8 @@ function resolvedInHistory(history: Snapshot[]): Set<string> {
 
 /**
  * Find the latest history snapshot where the same issue was last seen on a
- * strictly-older `lastSeenVersion`. Plain string comparison — adequate for
- * monotonic version strings like "1.2.3" vs "1.2.4"; future nice-to-have:
- * swap in a semver-aware comparator.
+ * strictly-older `lastSeenVersion`, using a small hand-rolled semver-aware
+ * comparator (see {@link compareVersions}).
  */
 function priorReleaseBaseline(
   currentIssue: Issue,
@@ -203,12 +202,81 @@ function priorReleaseBaseline(
     if (!entry) continue;
     const prevVersion = entry.issue.lastSeenVersion;
     if (!prevVersion) continue;
-    // Plain string compare — see note above on semver.
-    if (prevVersion < currentVersion) {
+    if (compareVersions(prevVersion, currentVersion) < 0) {
       return { events: entry.recent.events, version: prevVersion };
     }
   }
   return undefined;
+}
+
+/**
+ * Compare two version strings. Returns a negative number if `a < b`, positive
+ * if `a > b`, and zero if equal.
+ *
+ * Parses a subset of semver:
+ *   - leading `v` is stripped (`v1.2.3` → `1.2.3`)
+ *   - `major.minor.patch` is compared numerically (so `1.10.0 > 1.2.0`,
+ *     unlike plain string compare)
+ *   - a single missing segment defaults to `0` (`1.2` → `1.2.0`)
+ *   - build metadata after `+` is ignored per semver §10
+ *   - prerelease after `-` ranks lower than the same tuple without it
+ *     (semver §11); pre-releases compared against each other via lexical
+ *     compare, which is "good enough for the detector" but not full spec
+ *
+ * Anything unparseable (commit SHAs, nonsense strings) falls back to plain
+ * string compare — preserves pre-semver behaviour for odd provider outputs.
+ *
+ * Exposed so custom detectors can reuse it.
+ */
+export function compareVersions(a: string, b: string): number {
+  const pa = parseVersion(a);
+  const pb = parseVersion(b);
+  if (!pa || !pb) {
+    return a < b ? -1 : a > b ? 1 : 0;
+  }
+  if (pa.major !== pb.major) return pa.major - pb.major;
+  if (pa.minor !== pb.minor) return pa.minor - pb.minor;
+  if (pa.patch !== pb.patch) return pa.patch - pb.patch;
+  if (pa.prerelease && !pb.prerelease) return -1;
+  if (!pa.prerelease && pb.prerelease) return 1;
+  if (pa.prerelease && pb.prerelease) {
+    return pa.prerelease < pb.prerelease
+      ? -1
+      : pa.prerelease > pb.prerelease
+        ? 1
+        : 0;
+  }
+  return 0;
+}
+
+interface ParsedVersion {
+  major: number;
+  minor: number;
+  patch: number;
+  prerelease?: string;
+}
+
+function parseVersion(v: string): ParsedVersion | undefined {
+  const withoutV = v.replace(/^v/i, "");
+  const withoutBuild = withoutV.split("+", 1)[0] ?? withoutV;
+  const dashIndex = withoutBuild.indexOf("-");
+  const core = dashIndex >= 0 ? withoutBuild.slice(0, dashIndex) : withoutBuild;
+  const prerelease =
+    dashIndex >= 0 ? withoutBuild.slice(dashIndex + 1) || undefined : undefined;
+  const parts = core.split(".");
+  if (parts.length === 0 || parts.length > 3) return undefined;
+  const major = toNonNegativeInt(parts[0]);
+  const minor = parts[1] !== undefined ? toNonNegativeInt(parts[1]) : 0;
+  const patch = parts[2] !== undefined ? toNonNegativeInt(parts[2]) : 0;
+  if (major === undefined || minor === undefined || patch === undefined) {
+    return undefined;
+  }
+  return { major, minor, patch, prerelease };
+}
+
+function toNonNegativeInt(s: string | undefined): number | undefined {
+  if (!s || !/^\d+$/.test(s)) return undefined;
+  return Number(s);
 }
 
 function alert(

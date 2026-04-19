@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { describe, test } from "node:test";
 
 import { DEFAULT_THRESHOLDS, type Thresholds } from "../config.js";
-import { defaultDetector } from "../detector.js";
+import { compareVersions, defaultDetector } from "../detector.js";
 import type { Issue, Snapshot } from "../types.js";
 
 const THRESHOLDS: Thresholds = { ...DEFAULT_THRESHOLDS };
@@ -306,5 +306,75 @@ describe("defaultDetector", () => {
     assert.ok(spike);
     const ctx = spike!.context as { baselineEvents: number };
     assert.equal(ctx.baselineEvents, 100);
+  });
+
+  test("prior-release baseline handles 1.10 > 1.2 via semver compare, not string compare", () => {
+    const twoDaysAgo = iso(2 * 24 * 60 * 60 * 1000);
+    const history: Snapshot[] = [
+      snapshot(twoDaysAgo, [
+        { issue: issue("A", { lastSeenVersion: "1.2.0" }), events: 10 },
+      ]),
+    ];
+    // Current on 1.10.0 is newer than 1.2.0 by semver — plain string compare
+    // would rank "1.10.0" < "1.2.0" and skip the baseline entirely.
+    const current = snapshot(iso(0), [
+      { issue: issue("A", { lastSeenVersion: "1.10.0" }), events: 50 },
+    ]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    const spike = alerts.find((a) => a.kind === "spike");
+    assert.ok(spike, "prior-release spike must fire when 1.10.0 follows 1.2.0");
+    const ctx = spike!.context as {
+      baselineVersion?: string;
+      baselineSource: string;
+    };
+    assert.equal(ctx.baselineSource, "prior_release");
+    assert.equal(ctx.baselineVersion, "1.2.0");
+  });
+});
+
+describe("compareVersions", () => {
+  test("major.minor.patch compared numerically (1.10.0 > 1.2.0)", () => {
+    assert.ok(compareVersions("1.10.0", "1.2.0") > 0);
+    assert.ok(compareVersions("1.2.0", "1.10.0") < 0);
+    assert.ok(compareVersions("2.0.0", "1.99.99") > 0);
+  });
+
+  test("equal versions return 0", () => {
+    assert.equal(compareVersions("1.2.3", "1.2.3"), 0);
+    assert.equal(compareVersions("1.2", "1.2.0"), 0);
+    assert.equal(compareVersions("1", "1.0.0"), 0);
+  });
+
+  test("strips leading v", () => {
+    assert.equal(compareVersions("v1.2.3", "1.2.3"), 0);
+    assert.ok(compareVersions("v1.10.0", "v1.2.0") > 0);
+  });
+
+  test("ignores build metadata", () => {
+    assert.equal(compareVersions("1.2.3+build.1", "1.2.3+build.2"), 0);
+    assert.equal(compareVersions("1.2.3", "1.2.3+local"), 0);
+  });
+
+  test("prerelease ranks lower than same tuple without it (semver §11)", () => {
+    assert.ok(compareVersions("1.0.0-alpha", "1.0.0") < 0);
+    assert.ok(compareVersions("1.0.0", "1.0.0-alpha") > 0);
+  });
+
+  test("prereleases compared lexically against each other", () => {
+    assert.ok(compareVersions("1.0.0-alpha", "1.0.0-beta") < 0);
+    assert.equal(compareVersions("1.0.0-rc.1", "1.0.0-rc.1"), 0);
+  });
+
+  test("unparseable strings fall back to plain string compare", () => {
+    // Commit SHAs and other opaque strings — we want SOME ordering, not a throw.
+    const r = compareVersions("abc", "abd");
+    assert.ok(r < 0);
+    assert.equal(compareVersions("abc", "abc"), 0);
+  });
+
+  test("mixed parseable + unparseable falls back to string compare", () => {
+    // "1.2.3" is parseable, "not-a-version" is not → fall back.
+    // "1" < "n" lexically, so result is negative.
+    assert.ok(compareVersions("1.2.3", "not-a-version") < 0);
   });
 });
