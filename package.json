@@ -5,6 +5,14 @@
   "description": "Vendor-neutral, plugin-based crash observability for mobile and backend apps.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hx2ryu/crashwatch.git"
+  },
+  "homepage": "https://github.com/hx2ryu/crashwatch#readme",
+  "bugs": {
+    "url": "https://github.com/hx2ryu/crashwatch/issues"
+  },
   "engines": {
     "node": ">=18"
   },

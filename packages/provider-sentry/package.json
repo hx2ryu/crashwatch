@@ -2,14 +2,30 @@
   "name": "@crashwatch/provider-sentry",
   "version": "0.1.0-alpha.0",
   "description": "Sentry provider for crashwatch. Reads issues and events via the public Sentry REST API.",
+  "keywords": [
+    "crashwatch",
+    "sentry",
+    "crash-reporting"
+  ],
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "!dist/__tests__",
+    "!dist/**/*.tsbuildinfo",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hx2ryu/crashwatch.git",
+    "directory": "packages/provider-sentry"
+  },
+  "homepage": "https://github.com/hx2ryu/crashwatch/tree/main/packages/provider-sentry#readme",
+  "bugs": {
+    "url": "https://github.com/hx2ryu/crashwatch/issues"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
@@ -20,5 +36,8 @@
   },
   "peerDependencies": {
     "@crashwatch/core": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

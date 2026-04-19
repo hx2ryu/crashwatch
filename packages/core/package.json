@@ -2,6 +2,12 @@
   "name": "@crashwatch/core",
   "version": "0.1.0-alpha.0",
   "description": "Vendor-neutral core types, config loader, and detection engine for crashwatch.",
+  "keywords": [
+    "crashwatch",
+    "crash-reporting",
+    "observability",
+    "plugin"
+  ],
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,8 +20,19 @@
   },
   "files": [
     "dist",
+    "!dist/__tests__",
+    "!dist/**/*.tsbuildinfo",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hx2ryu/crashwatch.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/hx2ryu/crashwatch/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/hx2ryu/crashwatch/issues"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
@@ -26,5 +43,8 @@
   },
   "dependencies": {
     "yaml": "^2.5.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

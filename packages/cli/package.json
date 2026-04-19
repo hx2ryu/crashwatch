@@ -2,6 +2,11 @@
   "name": "@crashwatch/cli",
   "version": "0.1.0-alpha.0",
   "description": "CLI runner for crashwatch: load config, collect, detect, dispatch.",
+  "keywords": [
+    "crashwatch",
+    "cli",
+    "crash-reporting"
+  ],
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -12,8 +17,19 @@
   "files": [
     "bin",
     "dist",
+    "!dist/__tests__",
+    "!dist/**/*.tsbuildinfo",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hx2ryu/crashwatch.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/hx2ryu/crashwatch/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/hx2ryu/crashwatch/issues"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
@@ -24,5 +40,8 @@
   },
   "dependencies": {
     "@crashwatch/core": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

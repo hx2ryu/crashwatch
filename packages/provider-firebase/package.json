@@ -2,14 +2,31 @@
   "name": "@crashwatch/provider-firebase",
   "version": "0.1.0-alpha.0",
   "description": "Firebase Crashlytics provider for crashwatch. Reads the Crashlytics BigQuery export — the only officially supported machine-readable source.",
+  "keywords": [
+    "crashwatch",
+    "firebase",
+    "crashlytics",
+    "bigquery"
+  ],
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "!dist/__tests__",
+    "!dist/**/*.tsbuildinfo",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hx2ryu/crashwatch.git",
+    "directory": "packages/provider-firebase"
+  },
+  "homepage": "https://github.com/hx2ryu/crashwatch/tree/main/packages/provider-firebase#readme",
+  "bugs": {
+    "url": "https://github.com/hx2ryu/crashwatch/issues"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
@@ -26,5 +43,8 @@
     "@google-cloud/bigquery": {
       "optional": false
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

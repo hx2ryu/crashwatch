@@ -7,6 +7,18 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 ## [Unreleased]
 
 ### Added
+- **npm publish metadata for all 7 publishable packages.** Every
+  `packages/*/package.json` now carries `publishConfig.access: "public"`
+  (required so the first publish of a scoped package doesn't 403),
+  `repository` with a `directory` pointer so npm's "Source" link resolves to
+  the right subtree, `homepage` pointing at each package's README anchor,
+  `bugs.url`, and a minimal 3-6 term `keywords` list. The `files` whitelist
+  now excludes `dist/__tests__` and `*.tsbuildinfo` so compiled tests don't
+  leak into tarballs. Root `package.json` picked up matching top-level
+  `repository` / `homepage` / `bugs`. The tree is now positioned so that
+  `pnpm -r publish --dry-run --access public` can run clean (the actual
+  dry-run invocation is deferred to a follow-up session under human
+  sign-off); the real publish is also an explicit later step.
 - **Pluggable detector via config.** `CrashwatchConfig` gained an optional
   `detector: { plugin, options? }` field. When set, `crashwatch check`
   resolves the detector plugin the same way it resolves providers /
