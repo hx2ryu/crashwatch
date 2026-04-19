@@ -119,4 +119,192 @@ describe("defaultDetector", () => {
     const kinds = alerts.map((a) => a.kind).sort();
     assert.deepEqual(kinds, ["new_issue", "regression"]);
   });
+
+  test("resurfaced fires when history shows issue as closed and current has events", () => {
+    const threeDaysAgo = iso(3 * 24 * 60 * 60 * 1000);
+    const history = [
+      snapshot(threeDaysAgo, [
+        { issue: issue("A", { state: "closed" }), events: 0 },
+      ]),
+    ];
+    const current = snapshot(iso(0), [{ issue: issue("A"), events: 2 }]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    const resurfaced = alerts.find((a) => a.kind === "resurfaced");
+    assert.ok(resurfaced, "expected resurfaced alert");
+    assert.equal(resurfaced!.level, "warning");
+    assert.equal((resurfaced!.context as { events: number }).events, 2);
+  });
+
+  test("resurfaced does NOT fire when history only shows state: open", () => {
+    const threeDaysAgo = iso(3 * 24 * 60 * 60 * 1000);
+    const history = [
+      snapshot(threeDaysAgo, [
+        { issue: issue("A", { state: "open" }), events: 5 },
+      ]),
+    ];
+    const current = snapshot(iso(0), [{ issue: issue("A"), events: 2 }]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    assert.equal(alerts.filter((a) => a.kind === "resurfaced").length, 0);
+  });
+
+  test("resurfaced does NOT fire when history is empty", () => {
+    // With empty history, issue is brand new — new_issue path, not resurfaced.
+    const current = snapshot(iso(0), [{ issue: issue("A"), events: 2 }]);
+    const alerts = defaultDetector(current, [], THRESHOLDS);
+    assert.equal(alerts.filter((a) => a.kind === "resurfaced").length, 0);
+  });
+
+  test("regression signal takes precedence over resurfaced when both would qualify", () => {
+    const threeDaysAgo = iso(3 * 24 * 60 * 60 * 1000);
+    const history = [
+      snapshot(threeDaysAgo, [
+        { issue: issue("A", { state: "closed" }), events: 0 },
+      ]),
+    ];
+    const current = snapshot(iso(0), [
+      {
+        issue: issue("A", { signals: ["SIGNAL_REGRESSED"] }),
+        events: 2,
+      },
+    ]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    const kinds = alerts.map((a) => a.kind).sort();
+    assert.deepEqual(kinds, ["regression"]);
+  });
+
+  test("prior-release spike fires when lastSeenVersion changed and delta >= threshold", () => {
+    const twoDaysAgo = iso(2 * 24 * 60 * 60 * 1000);
+    const history = [
+      snapshot(twoDaysAgo, [
+        {
+          issue: issue("A", { lastSeenVersion: "1.2.3" }),
+          events: 100,
+        },
+      ]),
+    ];
+    const current = snapshot(iso(0), [
+      { issue: issue("A", { lastSeenVersion: "1.2.4" }), events: 130 },
+    ]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    const spike = alerts.find((a) => a.kind === "spike");
+    assert.ok(spike, "expected spike alert from prior-release baseline");
+    const ctx = spike!.context as {
+      baselineSource: string;
+      baselineVersion: string;
+      deltaPct: number;
+    };
+    assert.equal(ctx.baselineSource, "prior_release");
+    assert.equal(ctx.baselineVersion, "1.2.3");
+    assert.equal(ctx.deltaPct, 30);
+  });
+
+  test("prior-release spike does NOT fire when versions are equal", () => {
+    const twoDaysAgo = iso(2 * 24 * 60 * 60 * 1000);
+    const history = [
+      snapshot(twoDaysAgo, [
+        {
+          issue: issue("A", { lastSeenVersion: "1.2.4" }),
+          events: 100,
+        },
+      ]),
+    ];
+    const current = snapshot(iso(0), [
+      { issue: issue("A", { lastSeenVersion: "1.2.4" }), events: 130 },
+    ]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    // No week-over-week baseline either (snapshot isn't a week old), so no spike.
+    assert.equal(alerts.filter((a) => a.kind === "spike").length, 0);
+  });
+
+  test("prior-release spike does NOT fire when current lastSeenVersion is undefined", () => {
+    const twoDaysAgo = iso(2 * 24 * 60 * 60 * 1000);
+    const history = [
+      snapshot(twoDaysAgo, [
+        {
+          issue: issue("A", { lastSeenVersion: "1.2.3" }),
+          events: 100,
+        },
+      ]),
+    ];
+    const current = snapshot(iso(0), [
+      { issue: issue("A"), events: 130 },
+    ]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    assert.equal(alerts.filter((a) => a.kind === "spike").length, 0);
+  });
+
+  test("when both baselines fire, only ONE spike alert is emitted (larger delta wins)", () => {
+    const weekAgo = iso(7 * 24 * 60 * 60 * 1000);
+    const twoDaysAgo = iso(2 * 24 * 60 * 60 * 1000);
+    const history: Snapshot[] = [
+      // Week-over-week: 100 -> 130 => 30% delta.
+      snapshot(weekAgo, [
+        {
+          issue: issue("A", { lastSeenVersion: "1.2.3" }),
+          events: 100,
+        },
+      ]),
+      // Prior-release: 50 -> 130 => 160% delta (bigger).
+      snapshot(twoDaysAgo, [
+        {
+          issue: issue("A", { lastSeenVersion: "1.2.3" }),
+          events: 50,
+        },
+      ]),
+    ];
+    const current = snapshot(iso(0), [
+      { issue: issue("A", { lastSeenVersion: "1.2.4" }), events: 130 },
+    ]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    const spikes = alerts.filter((a) => a.kind === "spike");
+    assert.equal(spikes.length, 1, "expected exactly one spike alert");
+    const ctx = spikes[0]!.context as {
+      baselineSource: string;
+      deltaPct: number;
+    };
+    assert.equal(ctx.baselineSource, "prior_release");
+    assert.equal(ctx.deltaPct, 160);
+  });
+
+  test("baselineSource is populated on week-over-week spike alerts too", () => {
+    const weekAgo = iso(7 * 24 * 60 * 60 * 1000);
+    const history: Snapshot[] = [
+      snapshot(weekAgo, [{ issue: issue("A"), events: 100 }]),
+    ];
+    const current = snapshot(iso(0), [{ issue: issue("A"), events: 130 }]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    const spike = alerts.find((a) => a.kind === "spike");
+    assert.ok(spike, "expected spike alert");
+    const ctx = spike!.context as { baselineSource: string };
+    assert.equal(ctx.baselineSource, "week_over_week");
+  });
+
+  test("prior-release path uses the LATEST history snapshot with an older version", () => {
+    const fiveDaysAgo = iso(5 * 24 * 60 * 60 * 1000);
+    const twoDaysAgo = iso(2 * 24 * 60 * 60 * 1000);
+    const history: Snapshot[] = [
+      // Older snapshot on same old version — should NOT be chosen.
+      snapshot(fiveDaysAgo, [
+        {
+          issue: issue("A", { lastSeenVersion: "1.2.3" }),
+          events: 10,
+        },
+      ]),
+      // Latest snapshot on a still-older version — should be chosen.
+      snapshot(twoDaysAgo, [
+        {
+          issue: issue("A", { lastSeenVersion: "1.2.3" }),
+          events: 100,
+        },
+      ]),
+    ];
+    const current = snapshot(iso(0), [
+      { issue: issue("A", { lastSeenVersion: "1.2.4" }), events: 130 },
+    ]);
+    const alerts = defaultDetector(current, history, THRESHOLDS);
+    const spike = alerts.find((a) => a.kind === "spike");
+    assert.ok(spike);
+    const ctx = spike!.context as { baselineEvents: number };
+    assert.equal(ctx.baselineEvents, 100);
+  });
 });
