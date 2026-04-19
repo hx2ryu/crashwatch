@@ -20,7 +20,7 @@ All three identity layers are already configured on this machine:
 - **gh CLI** — `~/dev/personal/.envrc` pins `GH_TOKEN` to the hx2ryu token via `direnv`. Allow with `direnv allow` on first entry.
 - **Git SSH** — `~/.ssh/config` has `Host github.com-hx2ryu` → `~/.ssh/hx2ryu`. The repo remote is `git@github.com-hx2ryu:hx2ryu/crashwatch.git`.
 
-If a new machine or clone: replicate these three, then `corepack enable && pnpm install && pnpm -r build && pnpm test`. All 182 tests should be green.
+If a new machine or clone: replicate these three, then `corepack enable && pnpm install && pnpm -r build && pnpm test`. All 191 tests should be green.
 
 ## Current state (as of 2026-04-19)
 
@@ -33,17 +33,21 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 - `defaultDetector` emits `new_issue / spike / regression / resurfaced` using provider-supplied counts and signals. Spike path supports two baselines: same-weekday (`baselineSource: "week_over_week"`) and prior-release (`baselineSource: "prior_release"`). When both fire, only the larger-delta alert is emitted.
 - Detector is now **pluggable via config**. `config.detector: { plugin, options? }` replaces `defaultDetector` wholesale. CLI resolves it the same way provider/notifier/tracker plugins are resolved. `DetectorFactory` exported from `@crashwatch/core`.
 - Per-package READMEs now exist for every package; `docs/ROADMAP.md` is the public roadmap (NEXT-SESSION.md is internal session notes).
-- 182 tests across 7 packages; GitHub Actions runs `pnpm install / -r build / typecheck / test` on every push + PR and is currently green.
+- Detector version comparison is semver-aware (`1.10.0 > 1.2.0`); `compareVersions` is exported from `@crashwatch/core` for reuse in custom detectors.
+- All 7 publishable packages carry full npm metadata (`publishConfig.access: "public"`, `repository.directory`, `homepage`, `bugs`, `keywords`, `files` excluding compiled tests). `pnpm -r publish --dry-run --access public` is clean; tarballs 2.7 kB–18.8 kB each, no test leakage, `workspace:*` → `0.1.0-alpha.0` rewrite confirmed.
+- CI runs on `actions/checkout@v6` + `actions/setup-node@v6` (Node 22 LTS) + `pnpm/action-setup@v5` — silencing the Node 20 deprecation warning ahead of GitHub's 2026-09-16 removal.
+- 191 tests across 7 packages; GitHub Actions runs `pnpm install / -r build / typecheck / test` on every push + PR and is currently green.
 
 **What is deferred and why:**
 - No live BigQuery / Sentry / GitHub smoke test yet — depends on real credentials.
 - Two providers alive now; the `CrashProvider` interface has been pressure-tested against Sentry's shape (pagination, signals) but has not yet seen Bugsnag / Rollbar.
-- Detector version comparison is string-wise; semver-aware comparison is a future nice-to-have.
-- Nothing is on npm yet. First publish awaits an audit of `package.json` `files`, `main`, `types`, `engines` across all packages.
+- Nothing is on npm yet. Dry-run is clean; the real `pnpm -r publish --access public` is gated on explicit human sign-off + npm org decision (`@crashwatch` scope needs to be registered/claimed first).
 
 **Last commits on main:** see `git log`. Recent feature work:
+`chore(release): prep 0.1.0-alpha.0 publish dry-run` →
+`feat(core/detector): semver-aware version comparison` →
+`ci: bump actions to v5/v6 and Node 22` →
 `feat(core+cli): pluggable detector via config.detector` →
-`docs: CHANGELOG + NEXT-SESSION after parallel stream merge` →
 `docs: per-package READMEs + public ROADMAP` →
 `feat(core/detector): resurfaced + prior-release baseline` →
 `feat(tracker-github-issues): GitHub Issues tracker plugin` →
@@ -51,14 +55,16 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 
 ## Next up (priority order)
 
-### 1. Release prep — first `0.1.0-alpha.0` npm publish
+### 1. Actual `pnpm -r publish --access public` for 0.1.0-alpha.0
 
-Everything the alpha needs is in the tree. Ship it.
+Dry-run is clean; everything gating the real publish is non-code:
 
-- Audit each package's `package.json` `files`, `main`, `types`, `engines`, `license`, `repository`, and `publishConfig` (public access needed).
-- Run `pnpm -r publish --dry-run` and eyeball each package's tarball contents — no dist leaks, no accidental source-map stripping, no secrets.
-- Decide on whether `@crashwatch/*` is to be a public npm org or if each package publishes unscoped (org gives namespace control).
-- Tag and publish once dry-run is clean: `pnpm -r publish --access public`.
+- Decide / claim the `@crashwatch` npm org (scoped packages need the scope owned; `pnpm publish --access public` won't silently create it).
+- Log into npm in the publishing machine (`npm whoami` / `npm login`). 2FA: decide whether to require `npm publish --otp=<code>` or configure an automation token.
+- Confirm the license / homepage / repo URLs one more time with a human before the tarballs become immutable.
+- Run `pnpm -r publish --access public`. Each package-tarball contents and the packed `package.json` have already been inspected in session `56ecc0a`/`b21f6cf`; no surprises are expected.
+- After publish: verify a fresh `pnpm add @crashwatch/core@0.1.0-alpha.0` in a scratch dir resolves cleanly, and that deep deps (e.g. `@crashwatch/notifier-slack` → `@crashwatch/notifier-webhook` pinned to `0.1.0-alpha.0`) install without conflict.
+- Git-tag the release: `git tag v0.1.0-alpha.0 && git push --tags`. Create a GH release with the CHANGELOG's `[Unreleased]` block (rename the section in CHANGELOG after publish).
 
 ### 2. Live BigQuery / Sentry / GitHub smoke
 
@@ -75,13 +81,9 @@ For Sentry:
 For GitHub tracker:
 - PAT with `repo` scope, run `check` against a throwaway repo, confirm the tracker returns a real `html_url` and the alert records it.
 
-### 3. Detector: semver-aware version comparison
+### 3. Post-alpha: second-provider interface review
 
-Prior-release baseline currently uses plain string `<`. Upgrade to parse major/minor/patch so `"1.10.0" > "1.2.0"` is handled correctly. Add a tiny hand-rolled comparator in `packages/core/src/detector.ts` (avoid pulling in a semver dep unless more than one feature needs it).
-
-### 4. CI chore — Node.js 20 deprecation
-
-GitHub's runner deprecates Node 20 on 2026-09-16. `actions/checkout@v4`, `actions/setup-node@v4`, and `pnpm/action-setup@v4` will need to be bumped to a Node-24-compatible release. Tracked as its own small PR.
+With the alpha out in the wild, take another pass over the `CrashProvider` contract before 0.1.0 (non-alpha). Pressure-test against Bugsnag / Rollbar docs — do they expose something the current types can't represent (e.g. per-event breadcrumbs in a shape we can't map, or project hierarchies)? If YES, either extend the interface or file it as a 0.2 concern.
 
 ## Conventions worth remembering
 
@@ -97,10 +99,10 @@ GitHub's runner deprecates Node 20 on 2026-09-16. `actions/checkout@v4`, `action
 ## Suggested prompt for the next Claude Code session
 
 ```
-crashwatch 프로젝트 첫 알파 npm publish 준비를 이어서 진행해 줘.
+crashwatch 프로젝트 0.1.0-alpha.0 실제 npm publish를 진행해 줘.
 리포는 ~/dev/personal/crashwatch (GitHub hx2ryu/crashwatch). 세부 컨텍스트는
-레포 루트의 NEXT-SESSION.md를 먼저 읽고, "Next up" 1번 작업을 끝까지 가줘
-— package.json 감사 + pnpm -r publish --dry-run + CHANGELOG + CI 확인까지.
+레포 루트의 NEXT-SESSION.md를 먼저 읽고, "Next up" 1번 작업을 진행해 줘.
+Dry-run은 이미 clean — npm 계정/스코프 확인 → publish → 태그 + GH release까지.
 ```
 
 After that task is done, delete section "1." from the "Next up" list above and bump the "Current state" block so the next session picks up at section 2.

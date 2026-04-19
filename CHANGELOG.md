@@ -7,6 +7,16 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 ## [Unreleased]
 
 ### Added
+- **Semver-aware version comparison in the detector.** The prior-release
+  spike baseline now parses `major.minor.patch[-prerelease][+build]` and
+  compares numerically — fixing the motivating bug where plain string
+  compare ranked `"1.10.0" < "1.2.0"` and silently suppressed the baseline.
+  Prereleases rank lower than the same tuple without them (semver §11);
+  build metadata is ignored (§10); leading `v` is stripped; unparseable
+  strings (commit SHAs, etc.) fall back to plain string compare so odd
+  provider outputs still get *some* ordering. `compareVersions(a, b)` is
+  exported from `@crashwatch/core` for reuse in custom detectors. +9 core
+  tests (47 total).
 - **npm publish metadata for all 7 publishable packages.** Every
   `packages/*/package.json` now carries `publishConfig.access: "public"`
   (required so the first publish of a scoped package doesn't 403),
@@ -15,10 +25,11 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
   `bugs.url`, and a minimal 3-6 term `keywords` list. The `files` whitelist
   now excludes `dist/__tests__` and `*.tsbuildinfo` so compiled tests don't
   leak into tarballs. Root `package.json` picked up matching top-level
-  `repository` / `homepage` / `bugs`. The tree is now positioned so that
-  `pnpm -r publish --dry-run --access public` can run clean (the actual
-  dry-run invocation is deferred to a follow-up session under human
-  sign-off); the real publish is also an explicit later step.
+  `repository` / `homepage` / `bugs`. `pnpm -r publish --dry-run --access
+  public` verified clean across all 7 packages: 2.7 kB–18.8 kB per tarball,
+  no test files in any tarball, and pnpm's `workspace:*` → `0.1.0-alpha.0`
+  rewrite confirmed in both `dependencies` and `peerDependencies`. The real
+  publish is an explicit later step.
 - **Pluggable detector via config.** `CrashwatchConfig` gained an optional
   `detector: { plugin, options? }` field. When set, `crashwatch check`
   resolves the detector plugin the same way it resolves providers /
@@ -72,6 +83,10 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 - Documentation scaffolding under `docs/`.
 
 ### Changed
+- CI workflow bumped to `actions/checkout@v6`, `actions/setup-node@v6`
+  (Node 22 LTS), and `pnpm/action-setup@v5` to silence GitHub's Node 20
+  deprecation annotation. All three new majors run on Node 24, which is
+  where GH runners are headed for the 2026-09 cutover.
 - `@crashwatch/provider-firebase` now implements `listIssues`, `listEvents`, and
   `getReport` against the Firebase Crashlytics BigQuery export. Parameterized
   SQL is in `packages/provider-firebase/src/sql.ts`; row → core-type mappers
@@ -102,9 +117,8 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
   `listEvents` fallback.
 
 ### Known limitations
-- Detector version comparison is plain string ordering (`"1.2.3" < "1.2.4"`);
-  not semver-aware yet, so `"1.10.0" < "1.2.0"` would compare incorrectly.
-  Good enough for MVP given how providers expose `lastSeenVersion`.
 - Provider signals (`SIGNAL_REGRESSED`, `SIGNAL_EARLY`) are not present in the
   BigQuery export; detection leans on events / impacted users counts. Sentry
   does expose these and populates them directly.
+- Nothing has been published to npm yet. Dry-run is clean for 0.1.0-alpha.0;
+  the actual `pnpm -r publish --access public` is gated on human sign-off.
