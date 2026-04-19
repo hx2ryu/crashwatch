@@ -1,0 +1,73 @@
+[
+  {
+    "id": "e1111111111111111111111111111111",
+    "eventID": "e1111111111111111111111111111111",
+    "groupID": "4123456789",
+    "dateCreated": "2026-04-19T12:00:00Z",
+    "dateReceived": "2026-04-19T12:00:01Z",
+    "message": "NullPointerException",
+    "platform": "java",
+    "release": "1.2.3",
+    "tags": [
+      { "key": "level", "value": "error" },
+      { "key": "release", "value": "1.2.3" }
+    ],
+    "contexts": {
+      "device": { "manufacturer": "samsung", "model": "SM-S938N", "name": "Galaxy S25" },
+      "os": { "name": "Android", "version": "16" },
+      "app": { "app_version": "1.2.3" }
+    },
+    "entries": [
+      {
+        "type": "exception",
+        "data": {
+          "values": [
+            {
+              "type": "NullPointerException",
+              "value": "Attempt to invoke virtual method",
+              "stacktrace": {
+                "frames": [
+                  {
+                    "function": "invoke",
+                    "filename": "VMStack.java",
+                    "module": "dalvik.system.VMStack",
+                    "lineno": 0,
+                    "in_app": false
+                  },
+                  {
+                    "function": "onResume",
+                    "filename": "FeedFragment.kt",
+                    "package": "com.example.feed",
+                    "lineno": 128,
+                    "in_app": true
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "breadcrumbs",
+        "data": {
+          "values": [
+            {
+              "timestamp": "2026-04-19T11:59:50Z",
+              "type": "navigation",
+              "category": "ui.navigation",
+              "message": "navigate /feed",
+              "data": { "from": "/home", "to": "/feed" }
+            },
+            {
+              "timestamp": "2026-04-19T11:59:59Z",
+              "category": "http",
+              "message": "GET /api/feed 200",
+              "data": { "status_code": 200 }
+            }
+          ]
+        }
+      }
+    ],
+    "user": { "id": "u-1", "email": "user@example.com" }
+  }
+]

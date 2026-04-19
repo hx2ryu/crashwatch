@@ -1,5 +1,7 @@
-# Minimal example: one app, Firebase Crashlytics, Slack-compatible webhook.
-# Replace identifiers with your own. See ../../docs/configuration.md.
+# Minimal example: one app, Firebase Crashlytics OR Sentry, Slack-compatible webhook.
+# Pick one of the two providers blocks and delete the other — both are shown
+# side-by-side for reference. Replace identifiers with your own. See
+# ../../docs/configuration.md.
 
 version: 1
 
@@ -10,11 +12,21 @@ defaults:
     regressionSignals: [SIGNAL_REGRESSED, SIGNAL_EARLY]
 
 providers:
+  # -- Firebase Crashlytics (BigQuery export) --
   - id: firebase
     plugin: "@crashwatch/provider-firebase"
     options:
       projectId: "my-gcp-project"
       credentials: "${GOOGLE_APPLICATION_CREDENTIALS}"
+      defaultWindowHours: 24
+
+  # -- Sentry (REST API) --
+  - id: sentry
+    plugin: "@crashwatch/provider-sentry"
+    options:
+      authToken: "${SENTRY_AUTH_TOKEN}"
+      org: "my-org"
+      defaultProject: "web-frontend"
       defaultWindowHours: 24
 
 notifiers:
@@ -25,8 +37,9 @@ notifiers:
       bodyTemplate: slack-incoming-webhook
 
 apps:
-  - name: example-app
-    displayName: "Example App"
+  # Firebase-backed app
+  - name: example-firebase-app
+    displayName: "Example App (Firebase)"
     platforms:
       android:
         providerOptions:
@@ -35,4 +48,19 @@ apps:
         providerOptions:
           bigqueryTable: "my-gcp-project.firebase_crashlytics.example_app_IOS"
     providers: [firebase]
+    notify: [slack]
+
+  # Sentry-backed app
+  - name: example-sentry-app
+    displayName: "Example App (Sentry)"
+    platforms:
+      android:
+        providerOptions:
+          project: "mobile-android"
+          environment: "production"
+      ios:
+        providerOptions:
+          project: "mobile-ios"
+          environment: "production"
+    providers: [sentry]
     notify: [slack]

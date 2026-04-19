@@ -7,6 +7,20 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 ## [Unreleased]
 
 ### Added
+- `@crashwatch/provider-sentry` 0.1.0-alpha.0: Sentry provider backed by the
+  public REST API. Implements `listIssues`, `getIssue`, `listEvents` with
+  cursor-based pagination (`Link: rel="next"`) and jittered exponential backoff
+  on 429 / 503. Advertises the `pagination` and `signals` capabilities —
+  `SentryIssue.isRegressed → SIGNAL_REGRESSED`, `firstSeen` inside the current
+  window → `SIGNAL_EARLY` — so the default detector alerts on regressions
+  directly without requiring a 7-day snapshot history. Sentry statuses map as
+  `unresolved → open`, `resolved → closed`, `ignored → muted`,
+  `reprocessing → unknown`. 58 tests cover the fetch wrapper (Link-header
+  parsing, retry/backoff, auth), mappers (status, signals, stack-frame
+  ordering, breadcrumbs), and provider contract (URL shape, pagination cap,
+  project fallback, 404 handling).
+- Example `examples/single-app/config.yaml` gained a Sentry variant alongside
+  the Firebase example.
 - Initial monorepo scaffold.
 - `@crashwatch/core` 0.1.0-alpha.0: types, config loader, JSONL store, default detector, plugin interfaces.
 - `@crashwatch/cli` 0.1.0-alpha.0: `init`, `validate`, `check` commands; `--config`, `--state`, `--dry-run`, `--json` options.

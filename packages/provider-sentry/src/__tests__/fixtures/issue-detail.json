@@ -1,0 +1,16 @@
+{
+  "id": "4123456789",
+  "shortId": "MOBILE-ANDROID-ABC",
+  "title": "NullPointerException: Attempt to invoke virtual method",
+  "culprit": "com.example.feed.FeedFragment.onResume",
+  "level": "error",
+  "status": "resolved",
+  "firstSeen": "2026-04-19T00:00:00Z",
+  "lastSeen": "2026-04-19T23:00:00Z",
+  "count": "42",
+  "userCount": 7,
+  "permalink": "https://sentry.io/organizations/my-org/issues/4123456789/",
+  "isRegressed": false,
+  "isUnhandled": true,
+  "lastRelease": { "shortVersion": "1.2.4" }
+}

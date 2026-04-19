@@ -1,0 +1,43 @@
+[
+  {
+    "id": "4123456789",
+    "shortId": "MOBILE-ANDROID-ABC",
+    "title": "NullPointerException: Attempt to invoke virtual method",
+    "culprit": "com.example.feed.FeedFragment.onResume",
+    "level": "error",
+    "status": "unresolved",
+    "statusDetails": {},
+    "firstSeen": "2026-04-19T00:00:00Z",
+    "lastSeen": "2026-04-19T23:00:00Z",
+    "count": "42",
+    "userCount": 7,
+    "permalink": "https://sentry.io/organizations/my-org/issues/4123456789/",
+    "isRegressed": true,
+    "isUnhandled": true,
+    "firstRelease": { "shortVersion": "1.2.3", "version": "com.example@1.2.3" },
+    "lastRelease": { "shortVersion": "1.2.4" },
+    "metadata": {
+      "value": "Attempt to invoke virtual method",
+      "function": "onResume",
+      "type": "NullPointerException",
+      "filename": "FeedFragment.kt"
+    },
+    "platform": "java"
+  },
+  {
+    "id": "4123456790",
+    "shortId": "MOBILE-ANDROID-DEF",
+    "title": "Timeout",
+    "culprit": "com.example.api.HttpClient.execute",
+    "level": "warning",
+    "status": "ignored",
+    "firstSeen": "2026-04-10T00:00:00Z",
+    "lastSeen": "2026-04-19T18:00:00Z",
+    "count": 3,
+    "userCount": 2,
+    "permalink": "https://sentry.io/organizations/my-org/issues/4123456790/",
+    "isRegressed": false,
+    "firstRelease": null,
+    "lastRelease": null
+  }
+]
