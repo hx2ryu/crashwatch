@@ -1,85 +1,54 @@
 # Roadmap
 
-Public, long-horizon roadmap for crashwatch. For short-term session-to-session working notes, see [`../NEXT-SESSION.md`](../NEXT-SESSION.md).
+Public roadmap for crashwatch. Short-term, session-to-session working notes live in [`../NEXT-SESSION.md`](../NEXT-SESSION.md); this document is the version written for readers outside my own head.
 
-Versioning is independent per package, but milestones below are tracked at the repo level. Dates are targets, not commitments; this is a personal-time project.
+## Status: pre-alpha
 
----
+crashwatch is pre-alpha. The `CrashProvider`, `Notifier`, and `IssueTracker` interfaces will change as new providers stress-test them, and nothing has been published to npm yet. Milestones below are directional, not committed dates — this is a personal-time project.
 
-## 0.1.0-alpha — *Scaffold*  (shipped)
+## 0.1 (current)
 
-Goals: prove the plugin architecture with one real provider, one real notifier, and a working CLI runner.
+Shipped, in the tree today:
 
-- [x] Vendor-neutral `@crashwatch/core` (types, config, detector, JSONL store, plugin interfaces)
-- [x] `@crashwatch/cli` with `init`, `validate`, `check` (`--dry-run`, `--json`, `--state`)
-- [x] `@crashwatch/provider-firebase` via BigQuery export (stable path)
-- [x] `@crashwatch/notifier-webhook` + `@crashwatch/notifier-slack`
-- [x] 71 tests across packages; GitHub Actions CI green
-- [x] MIT license, contributing guide, JSON Schema for config
+- **Two providers.** `@crashwatch/provider-firebase` runs parameterized SQL against the Firebase Crashlytics → BigQuery export. `@crashwatch/provider-sentry` talks to the public Sentry REST API with cursor pagination and jittered backoff on 429 / 503.
+- **Two notifiers.** `@crashwatch/notifier-webhook` POSTs JSON alerts to any URL; `@crashwatch/notifier-slack` is a thin wrapper that pre-selects the Slack Incoming Webhook body template.
+- **CLI.** `@crashwatch/cli` ships `crashwatch init`, `validate`, and `check` with `--config`, `--state`, `--dry-run`, `--json` options. Plugins are resolved at runtime via `import()` by module specifier or local path.
+- **Detector.** `defaultDetector` emits three alert kinds: `new_issue` (absent from history + above threshold), `spike` (same-weekday baseline comparison), `regression` (provider-emitted signal).
+- **Store.** `JsonlSnapshotStore` appends snapshots and alerts to disk as JSONL — inspectable, diff-able, never rewritten in place.
+- **Tests.** 129 tests across the six packages, running under `tsx` + `node --test`. GitHub Actions runs `pnpm install / build / typecheck / test` on every push and is currently green.
 
----
+## 0.2
 
-## 0.2.0-alpha — *Second provider, first tracker*
+Near-term work, aimed at validating the plugin interfaces before they solidify:
 
-Goals: validate the abstractions with a second real provider before the API solidifies, and let alerts flow into an issue tracker.
+- `@crashwatch/tracker-github-issues` — the simplest real tracker to build, validates the `IssueTracker` shape on actual traffic, and is the one a small team is most likely to adopt.
+- Detector extensions: a `resurfaced` alert kind (closed/muted issue with new events), and a prior-release baseline so spikes can be scoped to the version that actually shipped.
+- Pluggable detector via config (`detector: { plugin: ... }`) so teams can replace or extend the default rules without forking core.
+- Per-package READMEs for every package in the tree — partly landing alongside this roadmap.
+- First `pnpm -r publish --dry-run` to shake out npm metadata before the real publish.
 
-- [ ] `@crashwatch/provider-sentry` (REST API, signals, pagination)
-- [ ] Update `CrashProvider` interface only if a real shape gap forces it
-- [ ] `@crashwatch/tracker-github-issues` (create + deduplicate on `crashlyticsIssueId` or equivalent key)
-- [ ] End-to-end example: Sentry → webhook → tracker
-- [ ] Per-package `README.md` for core, cli, notifier-webhook, notifier-slack
-- [ ] Live BigQuery smoke run (provider-firebase) against a real export
+## 1.0
 
----
+Longer horizon. These are the criteria for promoting out of alpha, not features:
 
-## 0.3.0-alpha — *Richer detection + trackers*
+- Live-backend smoke tests validated against a real Firebase Crashlytics export and a real Sentry org, so the mappers are proven against production schemas instead of only against recorded fixtures.
+- `CrashProvider`, `Notifier`, and `IssueTracker` interfaces held stable across two minor cycles with a documented migration path for anything that did change.
+- A docs site if the scope outgrows the current `docs/` folder; not a goal on its own.
+- Additional provider candidates (Bugsnag, Rollbar). **Not committed** — a provider ships when an end user of that product is interested enough to help.
 
-Goals: push beyond "week-over-week spike" and support the trackers most teams actually use.
+## Beyond 1.0
 
-- [ ] Detector plugins — expose a `DetectionRule[]` contract, ship `rolling-average`, `prior-release` baselines
-- [ ] `resurfaced` alert kind (closed/resolved → events > 0 again)
-- [ ] `@crashwatch/tracker-linear`
-- [ ] `@crashwatch/tracker-jira`
-- [ ] `@crashwatch/notifier-pagerduty` (escalation policies for `critical` alerts)
-- [ ] Cost-awareness docs for BigQuery mode (bytes-scanned budgets)
+Speculative; may or may not happen:
 
----
+- Tracker plugins for Jira and Linear.
+- Third-party / community detector plugins beyond the defaults — domain-specific rules (e.g. crash-free-session SLO burn rate, platform-specific regressions).
+- Scheduled runs from inside crashwatch itself (today the expectation is an external cron / CI / systemd timer).
 
-## 0.4.0-alpha — *Dogfooding + automation*
+## Non-goals
 
-Goals: someone (most likely me) runs this in anger for long enough to find the sharp edges.
+Things crashwatch will deliberately not do, so the scope stays legible:
 
-- [ ] `crashwatch compact` — roll up JSONL snapshots older than N days
-- [ ] `crashwatch report` — print a readable summary from the store
-- [ ] `@crashwatch/store-s3` / `@crashwatch/store-sqlite` as plugin alternatives to the default JSONL store
-- [ ] Auth-token-less helper (`crashwatch auth sentry` / `firebase`) to wire credentials without editing YAML
-- [ ] OpenTelemetry traces from core so runs are observable themselves
-
----
-
-## 0.5.0-alpha / 0.6.0-alpha — *Quality + polish*
-
-- [ ] `@crashwatch/provider-bugsnag`, `@crashwatch/provider-rollbar`
-- [ ] SLO plugin: crash-free users/session targets per app + burn-rate alerts
-- [ ] `docs/` site (mkdocs or docusaurus) with searchable plugin registry
-- [ ] Tightened types — narrow `raw?: unknown` to provider-specific discriminated union in V1
-
----
-
-## 1.0.0 — *Stable public API*
-
-Criteria for promoting out of alpha:
-
-- At least three first-party providers and two trackers shipping
-- `CrashProvider`, `Notifier`, `IssueTracker` interfaces unchanged for two minor cycles
-- Integration test matrix green against recorded real-world payloads for each provider
-- Documented migration path from 0.x for the handful of existing users
-- Semver commitment written into `CONTRIBUTING.md`
-
----
-
-## Explicitly out of scope
-
-- Ingesting crashes directly from clients — there are many excellent products for that; crashwatch is a consumer, not a reporter.
-- Symbolicating native stack traces — out of our abstraction level; if anything, a provider exposes symbols already resolved (e.g. Firebase does this server-side).
-- Hosted dashboards — crashwatch is designed to pipe signals into the dashboards teams already have (Slack, Jira, Grafana via webhook, etc.).
+- **No hosted product.** crashwatch is software you run against your own stores and tokens. If you want a SaaS, the vendors already make excellent ones.
+- **No vendor logic in `@crashwatch/core`.** The core never imports a vendor SDK and never names a specific product in its types. Vendor code lives in plugins, always.
+- **No bundled dashboard.** crashwatch is plumbing — it pipes crash signals into the dashboards and channels your team already has (Slack, Jira, Grafana, PagerDuty via webhook, your own intake endpoint). Building yet another UI is not the value-add.
+- **No client-side crash ingestion.** crashwatch is a consumer of crash data, not a reporter. Keep using Crashlytics / Sentry / Bugsnag for capture; crashwatch starts where they stop.
