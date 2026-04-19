@@ -30,9 +30,9 @@ export async function createBigqueryClient(
   let BigQueryCtor: new (opts: unknown) => BigQueryShape;
   try {
     const mod = await import("@google-cloud/bigquery");
-    BigQueryCtor = (mod as { BigQuery: typeof BigQueryCtor }).BigQuery as unknown as new (
-      opts: unknown,
-    ) => BigQueryShape;
+    // The SDK's native shape is wider than the handful of methods we use;
+    // narrow via `unknown` because a direct cast is not structurally sound.
+    BigQueryCtor = (mod as unknown as { BigQuery: new (opts: unknown) => BigQueryShape }).BigQuery;
   } catch (err) {
     throw new Error(
       "@crashwatch/provider-firebase requires @google-cloud/bigquery in " +

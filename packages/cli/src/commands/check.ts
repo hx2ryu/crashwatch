@@ -54,26 +54,35 @@ export async function check(argv: string[]): Promise<void> {
 }
 
 async function collect(provider: CrashProvider, app: AppRef): Promise<Snapshot> {
-  const issues = await provider.listIssues(app, { limit: 20 });
   const to = new Date();
   const from = new Date(to.getTime() - 24 * 60 * 60 * 1000);
+  const issues = await provider.listIssues(app, {
+    limit: 20,
+    from: from.toISOString(),
+    to: to.toISOString(),
+  });
 
+  // Prefer counts attached to the issue by the provider (cheap: one query for
+  // all issues). Fall back to a per-issue listEvents call only when absent.
   const issueEntries = await Promise.all(
     issues.map(async (issue) => {
-      const events = await provider.listEvents(app, {
-        issueId: issue.id,
-        from: from.toISOString(),
-        to: to.toISOString(),
-        limit: 1,
-      });
-      // MVP: approximate events count by provider-reported length.
-      // Providers that expose exact counts should override via getReport.
+      let events = issue.recentEvents;
+      if (events === undefined) {
+        const ev = await provider.listEvents(app, {
+          issueId: issue.id,
+          from: from.toISOString(),
+          to: to.toISOString(),
+          limit: 1000,
+        });
+        events = ev.length;
+      }
       return {
         issue,
         recent: {
           windowStart: from.toISOString(),
           windowEnd: to.toISOString(),
-          events: events.length,
+          events,
+          impactedUsers: issue.recentImpactedUsers,
         },
       };
     }),

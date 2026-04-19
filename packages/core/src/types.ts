@@ -38,6 +38,15 @@ export interface Issue {
   url?: string;
   /** Provider-labelled signals (e.g. regressed, fresh, early). */
   signals?: string[];
+  /**
+   * Events attributed to this issue within the recent window (as defined by
+   * the provider; typically 24 h). Providers that can compute this cheaply
+   * (e.g. via BigQuery aggregate) should populate it so the runner does not
+   * have to do an N+1 follow-up query per issue.
+   */
+  recentEvents?: number;
+  /** Distinct impacted users within the same window. */
+  recentImpactedUsers?: number;
   /** Original provider payload for debugging; not schema-stable. */
   raw?: unknown;
 }

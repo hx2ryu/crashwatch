@@ -76,8 +76,9 @@ const createFirebaseProvider: ProviderFactory<FirebaseProviderOptions> = async (
 
 export default createFirebaseProvider;
 export { createFirebaseProvider };
+export type { BigqueryClient } from "./bigquery.js";
 
-class FirebaseProvider implements CrashProvider {
+export class FirebaseProvider implements CrashProvider {
   readonly id = "firebase-crashlytics";
 
   constructor(
@@ -101,7 +102,12 @@ class FirebaseProvider implements CrashProvider {
       { from, to, limit: filter.limit ?? 20 },
       { from: "TIMESTAMP", to: "TIMESTAMP", limit: "INT64" },
     );
-    return rows.map((r) => rowToIssue(r as BqIssueRow).issue);
+    return rows.map((r) => {
+      const { issue, events, impactedUsers } = rowToIssue(
+        r as unknown as BqIssueRow,
+      );
+      return { ...issue, recentEvents: events, recentImpactedUsers: impactedUsers };
+    });
   }
 
   async getIssue(app: AppRef, issueId: string): Promise<IssueDetail> {
@@ -120,7 +126,7 @@ class FirebaseProvider implements CrashProvider {
         state: "unknown",
       };
     }
-    const { issue } = rowToIssue(issueRow as BqIssueRow);
+    const { issue } = rowToIssue(issueRow as unknown as BqIssueRow);
     const [sampleRow] = await this.bq.query(
       renderTable(LIST_EVENTS_SQL, table).replace("{ISSUE_FILTER}", "AND issue_id = @issueId"),
       { from, to, issueId, limit: 1 },
@@ -133,7 +139,7 @@ class FirebaseProvider implements CrashProvider {
     );
     return {
       ...issue,
-      sampleEvent: sampleRow ? rowToEvent(sampleRow as BqEventRow) : undefined,
+      sampleEvent: sampleRow ? rowToEvent(sampleRow as unknown as BqEventRow) : undefined,
     };
   }
 
@@ -161,7 +167,7 @@ class FirebaseProvider implements CrashProvider {
       params,
       types,
     );
-    return rows.map((r) => rowToEvent(r as BqEventRow));
+    return rows.map((r) => rowToEvent(r as unknown as BqEventRow));
   }
 
   async getReport(
@@ -178,7 +184,7 @@ class FirebaseProvider implements CrashProvider {
       { from, to, limit: filter.limit ?? 10 },
       { from: "TIMESTAMP", to: "TIMESTAMP", limit: "INT64" },
     );
-    return rows.map((r) => rowToReport(r as BqReportRow));
+    return rows.map((r) => rowToReport(r as unknown as BqReportRow));
   }
 
   private window(filter: { from?: string; to?: string }): {
