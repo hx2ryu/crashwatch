@@ -1,8 +1,4 @@
-import {
-  DEFAULT_THRESHOLDS,
-  JsonlSnapshotStore,
-  defaultDetector,
-} from "@crashwatch/core";
+import { DEFAULT_THRESHOLDS, JsonlSnapshotStore } from "@crashwatch/core";
 import type {
   Alert,
   AppConfig,
@@ -20,7 +16,9 @@ import { loadAndResolve } from "../plugins.js";
 
 export async function check(argv: string[]): Promise<void> {
   const args = parseArgs(argv);
-  const { config, providers, notifiers } = await loadAndResolve(args.config);
+  const { config, providers, notifiers, detector } = await loadAndResolve(
+    args.config,
+  );
 
   const store = new JsonlSnapshotStore(args.stateDir);
   const runId = new Date().toISOString();
@@ -41,7 +39,7 @@ export async function check(argv: string[]): Promise<void> {
         await store.appendSnapshot(snapshot);
 
         const history = await store.readRecentSnapshots(app.name, 50);
-        const alerts = defaultDetector(snapshot, history.slice(0, -1), thresholds);
+        const alerts = detector(snapshot, history.slice(0, -1), thresholds);
 
         if (args.dryRun || alerts.length === 0) {
           emitDry(args.json, app.name, alerts);

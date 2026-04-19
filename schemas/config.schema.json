@@ -27,6 +27,7 @@
       "type": "array",
       "items": { "$ref": "#/$defs/pluginRef" }
     },
+    "detector": { "$ref": "#/$defs/detectorRef" },
     "apps": {
       "type": "array",
       "minItems": 1,
@@ -40,6 +41,15 @@
       "required": ["id", "plugin"],
       "properties": {
         "id": { "type": "string" },
+        "plugin": { "type": "string" },
+        "options": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "detectorRef": {
+      "type": "object",
+      "required": ["plugin"],
+      "properties": {
         "plugin": { "type": "string" },
         "options": { "type": "object" }
       },

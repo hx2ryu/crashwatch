@@ -27,6 +27,18 @@ export type Detector = (
   thresholds: Thresholds,
 ) => Alert[];
 
+/**
+ * Factory signature for pluggable detectors. A plugin default-exports one of
+ * these (or exports it as `createPlugin`). The CLI resolves the reference in
+ * `config.detector` at runtime and calls it with the user-provided options.
+ *
+ * Returning `defaultDetector` wholesale is a valid implementation — use it as
+ * a base and compose extra rules via a thin wrapper.
+ */
+export type DetectorFactory<TOptions = unknown> = (
+  options: TOptions,
+) => Detector | Promise<Detector>;
+
 type SpikeBaselineSource = "week_over_week" | "prior_release";
 
 interface SpikeCandidate {

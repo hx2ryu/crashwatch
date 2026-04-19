@@ -10,6 +10,7 @@ import { check } from "../commands/check.js";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 const FAKE_PROVIDER = join(HERE, "fixtures/fake-provider.ts");
 const FAKE_NOTIFIER = join(HERE, "fixtures/fake-notifier.ts");
+const FAKE_DETECTOR = join(HERE, "fixtures/fake-detector.ts");
 
 async function writeConfig(
   dir: string,
@@ -130,6 +131,100 @@ apps:
       notifierRan = false;
     }
     assert.equal(notifierRan, false, "fake notifier should not have been called in --dry-run");
+  });
+
+  test("config.detector routes snapshot to the configured plugin, not defaultDetector", async () => {
+    const stateDir = join(workdir, "state-run-detector");
+    const notifLog = join(workdir, "notif-run-detector.log");
+    const configPath = await writeConfig(
+      workdir,
+      `version: 1
+providers:
+  - id: fake
+    plugin: "${FAKE_PROVIDER}"
+    options:
+      issues:
+        - id: I-MATCH
+          title: match-me please
+          events: 1
+        - id: I-SKIP
+          title: unrelated
+          events: 100
+notifiers:
+  - id: fake
+    plugin: "${FAKE_NOTIFIER}"
+    options:
+      logFile: "${notifLog}"
+detector:
+  plugin: "${FAKE_DETECTOR}"
+  options:
+    titleIncludes: match-me
+    marker: ROUTED
+apps:
+  - name: app-detector
+    platforms:
+      android:
+        providerOptions: {}
+    providers: [fake]
+    notify: [fake]
+`,
+      "config-detector.yaml",
+    );
+
+    await check(["--config", configPath, "--state", stateDir]);
+
+    const notif = await readFile(notifLog, "utf8");
+    // The fake detector should have fired exactly one 'custom' alert — on the
+    // matching issue only — and the defaultDetector's 'new_issue' rule should
+    // NOT have fired (100 events > threshold would normally trip it).
+    assert.match(notif, /"custom"/, "custom alert kind from fake detector");
+    assert.match(notif, /"I-MATCH"/);
+    assert.match(notif, /ROUTED/);
+    assert.doesNotMatch(
+      notif,
+      /"new_issue"/,
+      "defaultDetector must not run when config.detector is set",
+    );
+    assert.doesNotMatch(notif, /"I-SKIP"/);
+  });
+
+  test("missing config.detector falls back to defaultDetector (regression guard)", async () => {
+    // Covered implicitly by the other tests, but make it explicit here so the
+    // fallback path doesn't silently regress.
+    const stateDir = join(workdir, "state-run-fallback");
+    const notifLog = join(workdir, "notif-run-fallback.log");
+    const configPath = await writeConfig(
+      workdir,
+      `version: 1
+providers:
+  - id: fake
+    plugin: "${FAKE_PROVIDER}"
+    options:
+      issues:
+        - id: IFB
+          title: fallback boom
+          events: 12
+notifiers:
+  - id: fake
+    plugin: "${FAKE_NOTIFIER}"
+    options:
+      logFile: "${notifLog}"
+apps:
+  - name: app-fallback
+    platforms:
+      android:
+        providerOptions: {}
+    providers: [fake]
+    notify: [fake]
+`,
+      "config-fallback.yaml",
+    );
+
+    await check(["--config", configPath, "--state", stateDir]);
+
+    const notif = await readFile(notifLog, "utf8");
+    assert.match(notif, /"new_issue"/);
+    assert.doesNotMatch(notif, /"custom"/);
   });
 
   test("two sequential runs with same state dir produce history the detector can see", async () => {

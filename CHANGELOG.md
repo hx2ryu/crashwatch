@@ -7,6 +7,14 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 ## [Unreleased]
 
 ### Added
+- **Pluggable detector via config.** `CrashwatchConfig` gained an optional
+  `detector: { plugin, options? }` field. When set, `crashwatch check`
+  resolves the detector plugin the same way it resolves providers /
+  notifiers / trackers (`import()`, default export or `createPlugin` named
+  export) and uses it in place of `defaultDetector`. The new `DetectorFactory`
+  type is exported from `@crashwatch/core`. JSON Schema updated with a
+  `detectorRef` definition. Two new CLI e2e tests: explicit plugin path is
+  routed correctly; omitting the field still falls back to `defaultDetector`.
 - `@crashwatch/tracker-github-issues` 0.1.0-alpha.0: GitHub Issues tracker
   plugin. Implements the `IssueTracker` interface with a pure-`fetch` client,
   jittered exponential backoff on 429 / 502 / 503 (honouring `Retry-After`),
@@ -88,5 +96,3 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 - Provider signals (`SIGNAL_REGRESSED`, `SIGNAL_EARLY`) are not present in the
   BigQuery export; detection leans on events / impacted users counts. Sentry
   does expose these and populates them directly.
-- The detector is not yet user-pluggable via config; it's the one rule set
-  for now. That's next-session work.

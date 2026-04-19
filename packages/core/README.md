@@ -29,13 +29,14 @@ One runtime dependency: [`yaml`](https://www.npmjs.com/package/yaml). Requires N
 - `CrashProvider` + `ProviderFactory<TOptions>` — implement this in `@crashwatch/provider-*` packages.
 - `Notifier` + `NotifierFactory<TOptions>` — implement this in `@crashwatch/notifier-*` packages.
 - `IssueTracker` + `TrackerFactory<TOptions>` — implement this in `@crashwatch/tracker-*` packages.
+- `Detector` + `DetectorFactory<TOptions>` — implement this to replace the default rule set via `config.detector`.
 - `ProviderCapability` — the string enum used by `CrashProvider.supports()` (`listIssues`, `listEvents`, `getReport`, `pagination`, `signals`).
 
 ### Config
 
 - `loadConfig(path, env?)` — reads YAML or JSON, expands `${ENV_VAR}` and `${ENV_VAR:-default}` references, and shallow-validates required fields. Returns `{ config, configDir }`.
 - `expandEnv(value, env?)` — recursively substitutes environment variables inside strings, arrays, and plain objects. Exposed for plugins that parse their own sub-config.
-- `CrashwatchConfig`, `AppConfig`, `Thresholds`, `ProviderRef`, `NotifierRef`, `TrackerRef` — config types.
+- `CrashwatchConfig`, `AppConfig`, `Thresholds`, `ProviderRef`, `NotifierRef`, `TrackerRef`, `DetectorRef` — config types.
 - `DEFAULT_THRESHOLDS` — the fallback detector thresholds (`regressionPct: 20`, `newIssueEvents24h: 5`, `regressionSignals: ["SIGNAL_REGRESSED", "SIGNAL_EARLY"]`).
 
 ### Store
@@ -46,12 +47,42 @@ One runtime dependency: [`yaml`](https://www.npmjs.com/package/yaml). Requires N
 ### Detector
 
 - `Detector = (current, history, thresholds) => Alert[]` — the detector signature.
-- `defaultDetector` — ships three rules, evaluated per issue:
+- `DetectorFactory<TOptions>` — plugin factory shape, resolved by the CLI from `config.detector.plugin`.
+- `defaultDetector` — ships four rules, evaluated per issue:
   - **`new_issue`** — issue id not present in any historical snapshot and `recentEvents >= thresholds.newIssueEvents24h`.
-  - **`spike`** — `recentEvents` grew by `>= thresholds.regressionPct` versus the same-weekday snapshot from ~7 days ago.
+  - **`spike`** — `recentEvents` grew by `>= thresholds.regressionPct` versus either the same-weekday snapshot (`baselineSource: "week_over_week"`) or the latest history snapshot with a strictly-older `lastSeenVersion` (`baselineSource: "prior_release"`). If both fire, the larger-delta one wins.
   - **`regression`** — issue carries any signal listed in `thresholds.regressionSignals` (e.g. Sentry's `SIGNAL_REGRESSED`).
+  - **`resurfaced`** — a historical snapshot showed the issue as `closed` and the current window has events. Suppressed when `regression` also qualifies for the same issue.
 
-Precedence: a regression signal always fires; new-issue short-circuits spike detection on brand-new ids.
+Precedence: regression > resurfaced; new_issue short-circuits spike on brand-new ids.
+
+### Writing a custom detector
+
+```ts
+import type { Detector, DetectorFactory } from "@crashwatch/core";
+
+const factory: DetectorFactory<{ onlyApp?: string }> = (opts) => {
+  const detector: Detector = (current, history, thresholds) => {
+    if (opts.onlyApp && current.appName !== opts.onlyApp) return [];
+    // your rules here — or delegate to defaultDetector for a subset
+    return [];
+  };
+  return detector;
+};
+
+export default factory;
+```
+
+Configure it:
+
+```yaml
+detector:
+  plugin: "./my-detector.ts"        # or an npm module specifier
+  options:
+    onlyApp: example-app
+```
+
+When `config.detector` is omitted, the CLI uses `defaultDetector`.
 
 ## Writing a plugin
 

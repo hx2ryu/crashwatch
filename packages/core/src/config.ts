@@ -15,6 +15,13 @@ export interface CrashwatchConfig {
   providers: ProviderRef[];
   notifiers: NotifierRef[];
   trackers?: TrackerRef[];
+  /**
+   * Optional custom detector. When omitted, the CLI uses
+   * `defaultDetector` from `@crashwatch/core`. When present, the referenced
+   * plugin replaces the default rule set wholesale — compose with
+   * `defaultDetector` inside the plugin if you want to layer on top.
+   */
+  detector?: DetectorRef;
   apps: AppConfig[];
 }
 
@@ -68,6 +75,15 @@ export interface NotifierRef {
 
 export interface TrackerRef {
   id: string;
+  plugin: string;
+  options?: Record<string, unknown>;
+}
+
+/**
+ * A detector plugin reference. Unlike providers / notifiers / trackers there
+ * is at most one detector per config — hence no `id` field.
+ */
+export interface DetectorRef {
   plugin: string;
   options?: Record<string, unknown>;
 }

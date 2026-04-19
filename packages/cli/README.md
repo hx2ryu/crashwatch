@@ -32,7 +32,7 @@ crashwatch init --config ./crashwatch.yaml
 
 ### `crashwatch validate`
 
-Load the config and resolve all plugin references (providers, notifiers, trackers) via `import()` without actually running a collection. Useful for catching bad plugin paths, missing options, and schema errors in CI.
+Load the config and resolve all plugin references (providers, notifiers, trackers, detector) via `import()` without actually running a collection. Useful for catching bad plugin paths, missing options, and schema errors in CI.
 
 ```bash
 crashwatch validate --config ./crashwatch.yaml
@@ -46,7 +46,7 @@ The main runner. For every app × platform × provider combination in the config
 1. Calls `provider.listIssues` over the last 24 h (and fills in `recentEvents` counts via `listEvents` only if the provider did not attach them).
 2. Appends the resulting `Snapshot` to the JSONL store.
 3. Reads the last 50 snapshots for that app as history.
-4. Runs `defaultDetector` to produce zero or more `Alert`s.
+4. Runs the detector — `defaultDetector` from `@crashwatch/core`, unless `config.detector.plugin` is set, in which case that plugin replaces the default rule set.
 5. Dispatches each alert to every notifier that applies to the app, and appends the alert to the JSONL store.
 
 ```bash
@@ -82,6 +82,19 @@ A typical deployment wires the last line into cron, systemd timer, or CI:
 ```cron
 0 * * * * cd /srv/crashwatch && crashwatch check --config ./crashwatch.yaml
 ```
+
+## Custom detector
+
+The detector is pluggable. Default rules (`new_issue`, `spike`, `regression`, `resurfaced`) ship in `@crashwatch/core`; replace them wholesale by pointing `config.detector` at a plugin that default-exports a `DetectorFactory`:
+
+```yaml
+detector:
+  plugin: "./detectors/slo-burn-rate.ts"
+  options:
+    budgetMinutesPerMonth: 30
+```
+
+The plugin receives its `options`, returns a `Detector` (optionally async), and sees the same `(current, history, thresholds)` the default detector does. See [`@crashwatch/core`](../core/README.md#writing-a-custom-detector) for the factory signature.
 
 ## Exit codes
 

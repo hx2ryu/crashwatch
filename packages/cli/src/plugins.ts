@@ -1,10 +1,12 @@
 import { pathToFileURL } from "node:url";
 import { isAbsolute, resolve } from "node:path";
 
-import { loadConfig } from "@crashwatch/core";
+import { defaultDetector, loadConfig } from "@crashwatch/core";
 import type {
   CrashProvider,
   CrashwatchConfig,
+  Detector,
+  DetectorFactory,
   IssueTracker,
   Notifier,
   NotifierFactory,
@@ -17,16 +19,17 @@ interface Resolved {
   providers: CrashProvider[];
   notifiers: Notifier[];
   trackers: IssueTracker[];
+  detector: Detector;
 }
 
 /** Load config and all plugins referenced by it. */
 export async function loadAndResolve(configPath: string): Promise<Resolved> {
   const { config, configDir } = await loadConfig(configPath);
-  const { providers, notifiers, trackers } = await resolvePlugins(
+  const { providers, notifiers, trackers, detector } = await resolvePlugins(
     config,
     configDir,
   );
-  return { config, providers, notifiers, trackers };
+  return { config, providers, notifiers, trackers, detector };
 }
 
 export async function resolvePlugins(
@@ -36,6 +39,7 @@ export async function resolvePlugins(
   providers: CrashProvider[];
   notifiers: Notifier[];
   trackers: IssueTracker[];
+  detector: Detector;
 }> {
   const providers: CrashProvider[] = [];
   for (const ref of config.providers) {
@@ -58,7 +62,28 @@ export async function resolvePlugins(
     trackers.push(overrideId(instance, ref.id));
   }
 
-  return { providers, notifiers, trackers };
+  const detector = await resolveDetector(config, configDir);
+
+  return { providers, notifiers, trackers, detector };
+}
+
+async function resolveDetector(
+  config: CrashwatchConfig,
+  configDir: string,
+): Promise<Detector> {
+  if (!config.detector) return defaultDetector;
+  const factory = await loadFactory<DetectorFactory>(
+    config.detector.plugin,
+    configDir,
+  );
+  const instance = await factory(config.detector.options ?? {});
+  if (typeof instance !== "function") {
+    throw new Error(
+      `Detector plugin "${config.detector.plugin}" factory must return a ` +
+        "function of the signature (current, history, thresholds) => Alert[].",
+    );
+  }
+  return instance;
 }
 
 async function loadFactory<T>(spec: string, configDir: string): Promise<T> {
