@@ -26,8 +26,28 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
   a stable public API for Crashlytics issue/event listing, so the export is
   now the sole supported backend for this provider.
 
+### Added (tests)
+- `tsx` + Node `--test` suites across every package.
+- `@crashwatch/core`: 28 tests — `expandEnv`, `loadConfig` (YAML/JSON,
+  validation errors), `defaultDetector` (new_issue / spike / regression /
+  precedence), `JsonlSnapshotStore` (round-trip, tail limit, safe filename).
+- `@crashwatch/provider-firebase`: 37 tests — mapper shape tolerance,
+  table-id injection guard, `FirebaseProvider` contract driven by an
+  injected fake `BigqueryClient` (SQL rendering, `issueId` filter toggle,
+  report dispatch, capability advertisement, missing-option errors).
+- `@crashwatch/cli`: end-to-end `check` smoke against fixture provider +
+  notifier plugins — first-run `new_issue` alert, `--dry-run` suppression,
+  cross-run history consumption without false alerts.
+- `.github/workflows/ci.yml` now runs `pnpm test`.
+
+### Changed
+- `Issue` gained optional `recentEvents` / `recentImpactedUsers`: providers
+  that compute counts server-side can attach them in one `listIssues`
+  query. `@crashwatch/provider-firebase` populates them from
+  `LIST_ISSUES_SQL`; the CLI `check` command prefers them to an N+1
+  `listEvents` fallback.
+
 ### Known limitations
 - Detector only compares against same-weekday snapshots; other baselines TBD.
-- No integration tests yet.
 - Provider signals (`SIGNAL_REGRESSED`, `SIGNAL_EARLY`) are not present in the
   BigQuery export; detection leans on events / impacted users counts.
