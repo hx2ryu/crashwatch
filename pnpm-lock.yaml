@@ -60,6 +60,12 @@ importers:
         specifier: workspace:*
         version: link:../core
 
+  packages/tracker-github-issues:
+    dependencies:
+      '@crashwatch/core':
+        specifier: workspace:*
+        version: link:../core
+
 packages:
 
   '@esbuild/aix-ppc64@0.27.7':

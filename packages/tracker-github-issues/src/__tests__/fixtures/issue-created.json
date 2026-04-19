@@ -1,0 +1,37 @@
+{
+  "id": 2345678901,
+  "node_id": "I_kwDOABCDEF4AbCdE",
+  "number": 1337,
+  "title": "NullPointerException: Attempt to invoke virtual method",
+  "state": "open",
+  "locked": false,
+  "url": "https://api.github.com/repos/my-org/my-app/issues/1337",
+  "html_url": "https://github.com/my-org/my-app/issues/1337",
+  "repository_url": "https://api.github.com/repos/my-org/my-app",
+  "labels_url": "https://api.github.com/repos/my-org/my-app/issues/1337/labels{/name}",
+  "comments_url": "https://api.github.com/repos/my-org/my-app/issues/1337/comments",
+  "events_url": "https://api.github.com/repos/my-org/my-app/issues/1337/events",
+  "user": {
+    "login": "crashwatch-bot",
+    "id": 1001,
+    "type": "User",
+    "site_admin": false,
+    "html_url": "https://github.com/crashwatch-bot"
+  },
+  "labels": [
+    {
+      "id": 9001,
+      "name": "crash",
+      "color": "d73a4a",
+      "default": false
+    }
+  ],
+  "assignees": [],
+  "milestone": null,
+  "comments": 0,
+  "created_at": "2026-04-19T10:15:30Z",
+  "updated_at": "2026-04-19T10:15:30Z",
+  "closed_at": null,
+  "author_association": "OWNER",
+  "body": "**New crash: NullPointerException**\n\n| Field | Value |\n|---|---|\n| App | `example-app` |"
+}
