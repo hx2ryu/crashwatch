@@ -27,3 +27,6 @@ pnpm-debug.log*
 
 # typescript
 *.tsbuildinfo
+
+# claude code agent worktrees
+.claude/

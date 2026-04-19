@@ -20,7 +20,7 @@ All three identity layers are already configured on this machine:
 - **gh CLI** — `~/dev/personal/.envrc` pins `GH_TOKEN` to the hx2ryu token via `direnv`. Allow with `direnv allow` on first entry.
 - **Git SSH** — `~/.ssh/config` has `Host github.com-hx2ryu` → `~/.ssh/hx2ryu`. The repo remote is `git@github.com-hx2ryu:hx2ryu/crashwatch.git`.
 
-If a new machine or clone: replicate these three, then `corepack enable && pnpm install && pnpm -r build && pnpm test`. All 129 tests should be green.
+If a new machine or clone: replicate these three, then `corepack enable && pnpm install && pnpm -r build && pnpm test`. All 180 tests should be green.
 
 ## Current state (as of 2026-04-19)
 
@@ -28,57 +28,63 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 - `crashwatch init / validate / check` CLI loads a YAML/JSON config, resolves plugins via `import()`, writes JSONL snapshots + alerts, dispatches notifiers.
 - `@crashwatch/provider-firebase` implements `listIssues / getIssue / listEvents / getReport` against the Crashlytics BigQuery export (lazy-loads `@google-cloud/bigquery`).
 - `@crashwatch/provider-sentry` implements `listIssues / getIssue / listEvents` against the public Sentry REST API with cursor pagination + 429/503 backoff. Advertises `pagination` and `signals` capabilities (`SIGNAL_REGRESSED`, `SIGNAL_EARLY`). No extra deps — pure `fetch`.
+- `@crashwatch/tracker-github-issues` implements `IssueTracker` via GitHub REST API (`POST /repos/{owner}/{repo}/issues`). Pure `fetch`, jittered backoff on 429/502/503, clear 401/403 messages. Returns the created issue's `html_url` so the runner can persist it on the alert for dedup. Per-alert owner/repo/labels/assignees override tracker defaults.
 - `@crashwatch/notifier-webhook` + `@crashwatch/notifier-slack` deliver alerts to a URL.
-- `defaultDetector` emits `new_issue / spike / regression` using provider-supplied counts (`Issue.recentEvents`) and signals.
-- 129 tests across 6 packages; GitHub Actions runs `pnpm install / -r build / typecheck / test` on every push + PR and is currently green.
+- `defaultDetector` emits `new_issue / spike / regression / resurfaced` using provider-supplied counts and signals. Spike path supports two baselines: same-weekday (`baselineSource: "week_over_week"`) and prior-release (`baselineSource: "prior_release"`). When both fire, only the larger-delta alert is emitted.
+- Per-package READMEs now exist for every package; `docs/ROADMAP.md` is the public roadmap (NEXT-SESSION.md is internal session notes).
+- 180 tests across 7 packages; GitHub Actions runs `pnpm install / -r build / typecheck / test` on every push + PR and is currently green.
 
 **What is deferred and why:**
 - No live BigQuery / Sentry smoke test yet — depends on a Crashlytics export being set up or a real Sentry token.
 - Two providers alive now; the `CrashProvider` interface has been pressure-tested against Sentry's shape (pagination, signals) but has not yet seen Bugsnag / Rollbar.
-- No tracker plugins.
-- Detector baseline is same-weekday-only; richer windows (rolling average, prior-release-version) are out of scope for 0.1.
+- Detector is not yet user-pluggable via config. Rule set is still baked into `defaultDetector`.
+- Detector version comparison is string-wise; semver-aware comparison is a future nice-to-have.
 
 **Last commits on main:**
 
 ```
+7ab2e23 docs: per-package READMEs + public ROADMAP
+84e38d7 feat(core/detector): resurfaced + prior-release baseline
+7a38572 feat(tracker-github-issues): GitHub Issues tracker plugin
+dcf9ba0 feat(provider-sentry): Sentry REST API provider
 59f4033 docs: session handoff + public roadmap
 942bceb test: use single-level glob in test scripts for bash compatibility
-2b356d7 ci: drop pnpm version override, defer to packageManager field
-7af7f94 ci: run pnpm test; docs: log test coverage + Issue change in CHANGELOG
-5781c85 test: add tsx + node --test suites, wire into CI
-6c4188a feat(provider-firebase): BigQuery-export implementation
 ```
 
 ## Next up (priority order)
 
-### 1. `@crashwatch/tracker-github-issues`
+### 1. Pluggable detector via config
 
-With two providers alive the tracker interface can be validated cheaply. GitHub Issues is the simplest tracker to implement (`POST /repos/{owner}/{repo}/issues`), needs only a PAT with `repo` scope, and is exactly the kind of plugin a small team would actually use. Output ticket url should be persisted in the alert so a later CLI run can deduplicate.
+`defaultDetector` is hard-wired into the CLI today. Expose `config.detector: { plugin: string; options?: Record<string, unknown> }` so teams can replace or augment the rule set without forking core. Tasks:
 
-### 2. Live BigQuery / Sentry smoke
+- Add the field to `CrashwatchConfig` (`packages/core/src/config.ts`) and its JSON Schema.
+- Resolve the plugin the same way provider / notifier / tracker plugins are resolved (`import()`, accept default or `createPlugin` named export).
+- CLI `check` uses the configured detector if present, falls back to `defaultDetector`.
+- Test with a fake detector plugin in `packages/cli/src/__tests__/`.
 
-Only worth doing once a real Crashlytics export is available or a Sentry auth token exists. For BigQuery:
+### 2. Live BigQuery / Sentry / GitHub smoke
+
+Only worth doing once real credentials exist. For BigQuery:
 - `pnpm add -Dw @google-cloud/bigquery`
 - Export a **read-only** GCP service account key to `GOOGLE_APPLICATION_CREDENTIALS`.
 - Run `crashwatch check --config <real.yaml> --dry-run`. Compare SQL row shape vs `BqIssueRow` / `BqEventRow`.
-- If the schema diverges, update mappers (_not_ the interfaces above).
 
 For Sentry:
 - Export `SENTRY_AUTH_TOKEN` (scopes `event:read`, `project:read`).
 - Point `examples/single-app/config.yaml` at a real org/project, run `crashwatch check --dry-run`.
-- Verify the `SentryIssue` / `SentryEvent` fixtures still reflect the live schema; update mappers if Sentry has added or removed fields.
+- Verify `SentryIssue` / `SentryEvent` fixtures still reflect the live schema.
 
-### 3. Detector extensions
+For GitHub tracker:
+- PAT with `repo` scope, run `check` against a throwaway repo, confirm the tracker returns a real `html_url` and the alert records it.
 
-- **Resurfaced** kind: issue with `state=resolved` in history gains `recentEvents > 0`.
-- **Prior-release baseline**: compare to same issue in the previous shipped `displayVersion`.
-- Expose detector as pluggable (`config.detector: { plugin: ... }`).
+### 3. Detector: semver-aware version comparison
 
-### 4. Docs / release
+Prior-release baseline currently uses plain string `<`. Upgrade to parse major/minor/patch so `"1.10.0" > "1.2.0"` is handled correctly. Add a tiny hand-rolled comparator in `packages/core/src/detector.ts` (avoid pulling in a semver dep unless more than one feature needs it).
 
-- `docs/ROADMAP.md` (separate, maintained at project level; NEXT-SESSION.md is per-session working notes).
-- Per-package READMEs for core, cli, notifier-webhook, notifier-slack (currently only provider-firebase has one).
+### 4. Release prep
+
 - First `0.1.0-alpha.0` npm publish — dry-run with `pnpm -r publish --dry-run` first.
+- Audit each package's `package.json` `files` field, `main`/`types`, `engines`, and `license`.
 
 ## Conventions worth remembering
 
@@ -94,7 +100,7 @@ For Sentry:
 ## Suggested prompt for the next Claude Code session
 
 ```
-crashwatch 프로젝트 `@crashwatch/tracker-github-issues` 구현을 이어서 진행해 줘.
+crashwatch 프로젝트 pluggable detector 구현을 이어서 진행해 줘.
 리포는 ~/dev/personal/crashwatch (GitHub hx2ryu/crashwatch). 세부 컨텍스트는
 레포 루트의 NEXT-SESSION.md를 먼저 읽고, "Next up" 1번 작업을 끝까지 가줘
 — 소스 + 테스트 + README + CHANGELOG + CI 확인까지.

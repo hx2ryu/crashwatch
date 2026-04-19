@@ -7,6 +7,26 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 ## [Unreleased]
 
 ### Added
+- `@crashwatch/tracker-github-issues` 0.1.0-alpha.0: GitHub Issues tracker
+  plugin. Implements the `IssueTracker` interface with a pure-`fetch` client,
+  jittered exponential backoff on 429 / 502 / 503 (honouring `Retry-After`),
+  and clear 401 / 403 error messages. Per-alert `owner` / `repo` / `labels` /
+  `assignees` overrides fully replace tracker-level defaults. Returns the
+  created issue's `html_url` so the runner can record it on the alert for
+  downstream dedup. 41 tests cover the API wrapper, tracker contract, body
+  formatting, and failure modes.
+- `@crashwatch/core` `defaultDetector` gained two new rules:
+  `resurfaced` (closed issue picking up fresh events in history) and a
+  `prior-release` baseline path for `spike` (compares against the most recent
+  history snapshot whose `lastSeenVersion` was strictly older than the
+  current one). Alerts from either spike path now carry
+  `baselineSource: "week_over_week" | "prior_release"` in their context so
+  notifiers can disambiguate. +10 tests.
+- `docs/ROADMAP.md` rewritten as a public, reader-facing roadmap (pre-alpha
+  disclaimer + `0.1 (current)` / `0.2` / `1.0` / `Beyond 1.0` / `Non-goals`).
+- Per-package READMEs for `@crashwatch/core`, `@crashwatch/cli`,
+  `@crashwatch/notifier-webhook`, and `@crashwatch/notifier-slack`, matching
+  the tone of the existing provider-firebase / provider-sentry READMEs.
 - `@crashwatch/provider-sentry` 0.1.0-alpha.0: Sentry provider backed by the
   public REST API. Implements `listIssues`, `getIssue`, `listEvents` with
   cursor-based pagination (`Link: rel="next"`) and jittered exponential backoff
@@ -62,6 +82,11 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
   `listEvents` fallback.
 
 ### Known limitations
-- Detector only compares against same-weekday snapshots; other baselines TBD.
+- Detector version comparison is plain string ordering (`"1.2.3" < "1.2.4"`);
+  not semver-aware yet, so `"1.10.0" < "1.2.0"` would compare incorrectly.
+  Good enough for MVP given how providers expose `lastSeenVersion`.
 - Provider signals (`SIGNAL_REGRESSED`, `SIGNAL_EARLY`) are not present in the
-  BigQuery export; detection leans on events / impacted users counts.
+  BigQuery export; detection leans on events / impacted users counts. Sentry
+  does expose these and populates them directly.
+- The detector is not yet user-pluggable via config; it's the one rule set
+  for now. That's next-session work.
