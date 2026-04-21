@@ -1,4 +1,4 @@
-# @crashwatch/provider-sentry
+# @hx2ryu/crashwatch-provider-sentry
 
 Sentry provider for [crashwatch](../../README.md).
 
@@ -20,7 +20,7 @@ If you run self-hosted Sentry, pass `baseUrl: "https://sentry.mycompany.com/api/
 ## Install
 
 ```bash
-pnpm add @crashwatch/provider-sentry
+pnpm add @hx2ryu/crashwatch-provider-sentry
 ```
 
 There are no extra native or cloud-SDK dependencies; the provider uses the built-in `fetch` shipped with Node ≥ 18.
@@ -45,7 +45,7 @@ Tokens are sent as `Authorization: Bearer <token>`.
 version: 1
 providers:
   - id: sentry
-    plugin: "@crashwatch/provider-sentry"
+    plugin: "@hx2ryu/crashwatch-provider-sentry"
     options:
       authToken: "${SENTRY_AUTH_TOKEN}"
       org: "my-org"
@@ -109,8 +109,8 @@ The default detector understands both signals, so regressed issues will trigger 
 ## Development
 
 ```bash
-pnpm --filter @crashwatch/provider-sentry test
-pnpm --filter @crashwatch/provider-sentry build
+pnpm --filter @hx2ryu/crashwatch-provider-sentry test
+pnpm --filter @hx2ryu/crashwatch-provider-sentry build
 ```
 
 Tests run with `tsx` + `node --test` against recorded Sentry JSON fixtures under `src/__tests__/fixtures/`; no real API calls are made.

@@ -48,16 +48,16 @@ Every crash-reporting vendor ships its own console. Organizations end up running
 
 | Package | Purpose |
 |---|---|
-| [`@crashwatch/core`](./packages/core) | Types, config loader, detector, JSONL store, plugin interfaces |
-| [`@crashwatch/cli`](./packages/cli) | `crashwatch init / validate / check` commands |
-| [`@crashwatch/provider-firebase`](./packages/provider-firebase) | Firebase Crashlytics provider (BigQuery export + CLI modes) |
-| [`@crashwatch/notifier-webhook`](./packages/notifier-webhook) | Generic HTTP webhook notifier |
-| [`@crashwatch/notifier-slack`](./packages/notifier-slack) | Slack Incoming Webhook wrapper |
+| [`@hx2ryu/crashwatch-core`](./packages/core) | Types, config loader, detector, JSONL store, plugin interfaces |
+| [`@hx2ryu/crashwatch-cli`](./packages/cli) | `crashwatch init / validate / check` commands |
+| [`@hx2ryu/crashwatch-provider-firebase`](./packages/provider-firebase) | Firebase Crashlytics provider (BigQuery export + CLI modes) |
+| [`@hx2ryu/crashwatch-notifier-webhook`](./packages/notifier-webhook) | Generic HTTP webhook notifier |
+| [`@hx2ryu/crashwatch-notifier-slack`](./packages/notifier-slack) | Slack Incoming Webhook wrapper |
 
 Planned:
-- `@crashwatch/provider-sentry`, `@crashwatch/provider-bugsnag`, `@crashwatch/provider-bigquery`
-- `@crashwatch/tracker-jira`, `@crashwatch/tracker-linear`, `@crashwatch/tracker-github`
-- `@crashwatch/notifier-pagerduty`, `@crashwatch/notifier-email`
+- `@hx2ryu/crashwatch-provider-sentry`, `@hx2ryu/crashwatch-provider-bugsnag`, `@hx2ryu/crashwatch-provider-bigquery`
+- `@hx2ryu/crashwatch-tracker-jira`, `@hx2ryu/crashwatch-tracker-linear`, `@hx2ryu/crashwatch-tracker-github`
+- `@hx2ryu/crashwatch-notifier-pagerduty`, `@hx2ryu/crashwatch-notifier-email`
 
 ## Quick start
 
@@ -85,7 +85,7 @@ See [`examples/single-app/config.yaml`](./examples/single-app/config.yaml) for a
 
 ```ts
 // my-provider.ts
-import type { ProviderFactory, CrashProvider, Issue, AppRef } from "@crashwatch/core";
+import type { ProviderFactory, CrashProvider, Issue, AppRef } from "@hx2ryu/crashwatch-core";
 
 const factory: ProviderFactory<{ apiKey: string }> = ({ apiKey }): CrashProvider => ({
   id: "my-provider",

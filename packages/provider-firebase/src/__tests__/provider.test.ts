@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { describe, test } from "node:test";
 
-import type { AppRef } from "@crashwatch/core";
+import type { AppRef } from "@hx2ryu/crashwatch-core";
 
 import type { BigqueryClient, QueryRow } from "../bigquery.js";
 import { FirebaseProvider } from "../index.js";

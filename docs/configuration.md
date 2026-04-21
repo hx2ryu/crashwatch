@@ -21,7 +21,7 @@ See [`../schemas/config.schema.json`](../schemas/config.schema.json) for the for
 
 ```yaml
 - id: my-slack            # referenced from apps below
-  plugin: "@crashwatch/notifier-slack"  # module specifier or relative path
+  plugin: "@hx2ryu/crashwatch-notifier-slack"  # module specifier or relative path
   options:                # free-form; shape depends on the plugin
     webhookUrl: "${SLACK_WEBHOOK_URL}"
 ```

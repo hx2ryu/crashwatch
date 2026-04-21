@@ -13,7 +13,7 @@ import type {
   Issue,
   IssueDetail,
   StackFrame,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 export interface SentryIssue {
   id: string;

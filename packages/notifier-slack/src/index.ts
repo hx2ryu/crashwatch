@@ -1,12 +1,12 @@
 import createWebhookNotifier, {
   type WebhookNotifierOptions,
-} from "@crashwatch/notifier-webhook";
-import type { NotifierFactory } from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-notifier-webhook";
+import type { NotifierFactory } from "@hx2ryu/crashwatch-core";
 
 /**
- * Thin wrapper over @crashwatch/notifier-webhook pre-configured for Slack
+ * Thin wrapper over @hx2ryu/crashwatch-notifier-webhook pre-configured for Slack
  * incoming webhooks. Exists so configs can express intent clearly
- * (`plugin: @crashwatch/notifier-slack`) without repeating the template flag.
+ * (`plugin: @hx2ryu/crashwatch-notifier-slack`) without repeating the template flag.
  */
 export interface SlackNotifierOptions {
   webhookUrl: string;

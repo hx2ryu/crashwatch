@@ -1,4 +1,4 @@
-# @crashwatch/notifier-webhook
+# @hx2ryu/crashwatch-notifier-webhook
 
 Generic HTTP webhook notifier for [crashwatch](../../README.md). POSTs each alert as JSON to a configured URL.
 
@@ -17,10 +17,10 @@ No external HTTP client dependency — uses Node's built-in `fetch`.
 ## Install
 
 ```bash
-pnpm add @crashwatch/notifier-webhook
+pnpm add @hx2ryu/crashwatch-notifier-webhook
 ```
 
-Requires Node ≥ 18. `@crashwatch/core` is a peer dependency.
+Requires Node ≥ 18. `@hx2ryu/crashwatch-core` is a peer dependency.
 
 ## Configure
 
@@ -28,7 +28,7 @@ Requires Node ≥ 18. `@crashwatch/core` is a peer dependency.
 version: 1
 notifiers:
   - id: ops-webhook
-    plugin: "@crashwatch/notifier-webhook"
+    plugin: "@hx2ryu/crashwatch-notifier-webhook"
     options:
       url: "${CRASHWATCH_WEBHOOK_URL}"
       method: POST                       # optional; default POST
@@ -49,7 +49,7 @@ apps:
 
 | Field | Required | Notes |
 |---|---|---|
-| `url` | yes | Destination URL. `${ENV_VAR}` and `${ENV_VAR:-default}` expand via `@crashwatch/core`'s config loader, so the secret never lives in YAML. |
+| `url` | yes | Destination URL. `${ENV_VAR}` and `${ENV_VAR:-default}` expand via `@hx2ryu/crashwatch-core`'s config loader, so the secret never lives in YAML. |
 | `method` | no | `"POST"` (default) or `"PUT"`. |
 | `bodyTemplate` | no | `"raw"` (default) sends the `Alert` JSON verbatim. `"slack-incoming-webhook"` reshapes it into a Slack-compatible `{ text, blocks: [...] }` payload with a level-based emoji and `<url|label>` links. |
 | `headers` | no | Extra headers merged onto `content-type: application/json`. Env expansion applies. |
@@ -66,11 +66,11 @@ Env expansion happens at config-load time on every string, including `url` and `
 
 ## When to use this
 
-Reach for `@crashwatch/notifier-webhook` when the destination does not have a dedicated crashwatch plugin — your own intake API, a generic automation platform, Grafana, PagerDuty Events v2, Discord, etc. For Slack specifically, the convenience wrapper [`@crashwatch/notifier-slack`](../notifier-slack) pre-selects the `slack-incoming-webhook` template so your config reads more intentionally; the two produce identical HTTP traffic.
+Reach for `@hx2ryu/crashwatch-notifier-webhook` when the destination does not have a dedicated crashwatch plugin — your own intake API, a generic automation platform, Grafana, PagerDuty Events v2, Discord, etc. For Slack specifically, the convenience wrapper [`@hx2ryu/crashwatch-notifier-slack`](../notifier-slack) pre-selects the `slack-incoming-webhook` template so your config reads more intentionally; the two produce identical HTTP traffic.
 
 ## Development
 
 ```bash
-pnpm --filter @crashwatch/notifier-webhook test
-pnpm --filter @crashwatch/notifier-webhook build
+pnpm --filter @hx2ryu/crashwatch-notifier-webhook test
+pnpm --filter @hx2ryu/crashwatch-notifier-webhook build
 ```

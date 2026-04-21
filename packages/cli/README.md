@@ -1,4 +1,4 @@
-# @crashwatch/cli
+# @hx2ryu/crashwatch-cli
 
 Command-line runner for [crashwatch](../../README.md). Loads a YAML/JSON config, resolves plugins via dynamic `import()`, snapshots each app, runs the detector, and dispatches alerts.
 
@@ -6,10 +6,10 @@ Command-line runner for [crashwatch](../../README.md). Loads a YAML/JSON config,
 
 ```bash
 # global
-pnpm add -g @crashwatch/cli
+pnpm add -g @hx2ryu/crashwatch-cli
 
 # or local to a repo
-pnpm add -D @crashwatch/cli
+pnpm add -D @hx2ryu/crashwatch-cli
 ```
 
 From inside the monorepo you can also run the bin directly without installing:
@@ -46,7 +46,7 @@ The main runner. For every app × platform × provider combination in the config
 1. Calls `provider.listIssues` over the last 24 h (and fills in `recentEvents` counts via `listEvents` only if the provider did not attach them).
 2. Appends the resulting `Snapshot` to the JSONL store.
 3. Reads the last 50 snapshots for that app as history.
-4. Runs the detector — `defaultDetector` from `@crashwatch/core`, unless `config.detector.plugin` is set, in which case that plugin replaces the default rule set.
+4. Runs the detector — `defaultDetector` from `@hx2ryu/crashwatch-core`, unless `config.detector.plugin` is set, in which case that plugin replaces the default rule set.
 5. Dispatches each alert to every notifier that applies to the app, and appends the alert to the JSONL store.
 
 ```bash
@@ -85,7 +85,7 @@ A typical deployment wires the last line into cron, systemd timer, or CI:
 
 ## Custom detector
 
-The detector is pluggable. Default rules (`new_issue`, `spike`, `regression`, `resurfaced`) ship in `@crashwatch/core`; replace them wholesale by pointing `config.detector` at a plugin that default-exports a `DetectorFactory`:
+The detector is pluggable. Default rules (`new_issue`, `spike`, `regression`, `resurfaced`) ship in `@hx2ryu/crashwatch-core`; replace them wholesale by pointing `config.detector` at a plugin that default-exports a `DetectorFactory`:
 
 ```yaml
 detector:
@@ -94,7 +94,7 @@ detector:
     budgetMinutesPerMonth: 30
 ```
 
-The plugin receives its `options`, returns a `Detector` (optionally async), and sees the same `(current, history, thresholds)` the default detector does. See [`@crashwatch/core`](../core/README.md#writing-a-custom-detector) for the factory signature.
+The plugin receives its `options`, returns a `Detector` (optionally async), and sees the same `(current, history, thresholds)` the default detector does. See [`@hx2ryu/crashwatch-core`](../core/README.md#writing-a-custom-detector) for the factory signature.
 
 ## Exit codes
 
@@ -107,8 +107,8 @@ The plugin receives its `options`, returns a `Detector` (optionally async), and 
 ## Development
 
 ```bash
-pnpm --filter @crashwatch/cli test
-pnpm --filter @crashwatch/cli build
+pnpm --filter @hx2ryu/crashwatch-cli test
+pnpm --filter @hx2ryu/crashwatch-cli build
 ```
 
 The test suite is an end-to-end `check` smoke run against fixture provider and notifier plugins loaded through the real plugin resolver.

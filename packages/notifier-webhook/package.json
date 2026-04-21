@@ -1,5 +1,5 @@
 {
-  "name": "@crashwatch/notifier-webhook",
+  "name": "@hx2ryu/crashwatch-notifier-webhook",
   "version": "0.1.0-alpha.0",
   "description": "Generic HTTP webhook notifier for crashwatch. Posts JSON alerts to a URL.",
   "keywords": [
@@ -36,7 +36,7 @@
     "node": ">=18"
   },
   "peerDependencies": {
-    "@crashwatch/core": "workspace:*"
+    "@hx2ryu/crashwatch-core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

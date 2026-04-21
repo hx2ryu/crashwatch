@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, test } from "node:test";
 
-import type { Alert, TrackerContext } from "@crashwatch/core";
+import type { Alert, TrackerContext } from "@hx2ryu/crashwatch-core";
 
 import { GitHubApiClient, type FetchLike } from "../api.js";
 import {

@@ -17,7 +17,7 @@ export interface CrashwatchConfig {
   trackers?: TrackerRef[];
   /**
    * Optional custom detector. When omitted, the CLI uses
-   * `defaultDetector` from `@crashwatch/core`. When present, the referenced
+   * `defaultDetector` from `@hx2ryu/crashwatch-core`. When present, the referenced
    * plugin replaces the default rule set wholesale — compose with
    * `defaultDetector` inside the plugin if you want to layer on top.
    */

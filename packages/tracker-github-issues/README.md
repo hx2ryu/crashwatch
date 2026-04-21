@@ -1,4 +1,4 @@
-# @crashwatch/tracker-github-issues
+# @hx2ryu/crashwatch-tracker-github-issues
 
 GitHub Issues tracker for [crashwatch](../../README.md).
 
@@ -19,7 +19,7 @@ If you run GitHub Enterprise Server, pass `baseUrl: "https://ghe.example.com/api
 ## Install
 
 ```bash
-pnpm add @crashwatch/tracker-github-issues
+pnpm add @hx2ryu/crashwatch-tracker-github-issues
 ```
 
 No extra native or cloud-SDK dependencies; the tracker uses the built-in `fetch` shipped with Node ≥ 18.
@@ -45,7 +45,7 @@ Tokens are sent as `Authorization: Bearer <token>`.
 version: 1
 trackers:
   - id: github
-    plugin: "@crashwatch/tracker-github-issues"
+    plugin: "@hx2ryu/crashwatch-tracker-github-issues"
     options:
       authToken: "${GITHUB_TOKEN}"
       defaultOwner: "my-org"
@@ -102,8 +102,8 @@ This format is stable but not load-bearing — feel free to edit individual issu
 ## Development
 
 ```bash
-pnpm --filter @crashwatch/tracker-github-issues test
-pnpm --filter @crashwatch/tracker-github-issues build
+pnpm --filter @hx2ryu/crashwatch-tracker-github-issues test
+pnpm --filter @hx2ryu/crashwatch-tracker-github-issues build
 ```
 
 Tests run with `tsx` + `node --test` against recorded GitHub JSON fixtures under `src/__tests__/fixtures/`; no real API calls are made.

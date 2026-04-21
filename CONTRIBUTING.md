@@ -4,7 +4,7 @@ Thanks for your interest. crashwatch is pre-alpha — APIs will change — but w
 
 ## Ground rules
 
-- **Vendor-neutrality is the whole point.** Changes to `@crashwatch/core` must not introduce a dependency on any specific provider, notifier, or tracker. If you find yourself adding `firebase-admin` or `@slack/web-api` to `core`, split it into a plugin.
+- **Vendor-neutrality is the whole point.** Changes to `@hx2ryu/crashwatch-core` must not introduce a dependency on any specific provider, notifier, or tracker. If you find yourself adding `firebase-admin` or `@slack/web-api` to `core`, split it into a plugin.
 - **Plugins are packages.** A plugin should be installable and usable on its own.
 - **Config is the user interface.** Prefer a new config option over a new CLI flag; prefer a plugin option over a config option.
 - **Small, inspectable state.** Default storage stays JSONL on disk. Other backends are plugins.

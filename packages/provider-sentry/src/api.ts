@@ -57,7 +57,7 @@ export class SentryApiClient {
   constructor(private readonly opts: SentryApiOptions) {
     if (!opts.authToken) {
       throw new Error(
-        "@crashwatch/provider-sentry: `authToken` is required. Create one at " +
+        "@hx2ryu/crashwatch-provider-sentry: `authToken` is required. Create one at " +
           "https://sentry.io/settings/account/api/auth-tokens/ with scopes " +
           "`event:read` and `project:read`.",
       );

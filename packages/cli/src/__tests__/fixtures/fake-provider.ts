@@ -1,4 +1,4 @@
-import type { CrashProvider, ProviderFactory } from "@crashwatch/core";
+import type { CrashProvider, ProviderFactory } from "@hx2ryu/crashwatch-core";
 
 /**
  * Deterministic fake provider for CLI end-to-end tests.

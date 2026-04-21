@@ -8,7 +8,7 @@ import type {
   IssueFilter,
   ProviderCapability,
   ProviderFactory,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 import { SentryApiClient, type SentryApiOptions } from "./api.js";
 import {
@@ -34,7 +34,7 @@ import {
  * Config sample:
  *   providers:
  *     - id: sentry
- *       plugin: "@crashwatch/provider-sentry"
+ *       plugin: "@hx2ryu/crashwatch-provider-sentry"
  *       options:
  *         authToken: "${SENTRY_AUTH_TOKEN}"
  *         org: "my-org"
@@ -93,7 +93,7 @@ export class SentryProvider implements CrashProvider {
   ) {
     if (!options.org) {
       throw new Error(
-        "@crashwatch/provider-sentry: `org` is required in provider options.",
+        "@hx2ryu/crashwatch-provider-sentry: `org` is required in provider options.",
       );
     }
   }
@@ -193,7 +193,7 @@ export class SentryProvider implements CrashProvider {
     if (!project) {
       throw new Error(
         `App "${app.name}" (${app.platform}) is missing providerOptions.project ` +
-          "for @crashwatch/provider-sentry, and no defaultProject is configured.",
+          "for @hx2ryu/crashwatch-provider-sentry, and no defaultProject is configured.",
       );
     }
     return { org, project, environment: app_.environment };

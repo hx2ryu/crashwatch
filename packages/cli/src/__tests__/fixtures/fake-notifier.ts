@@ -1,6 +1,6 @@
 import { appendFileSync } from "node:fs";
 
-import type { Notifier, NotifierFactory } from "@crashwatch/core";
+import type { Notifier, NotifierFactory } from "@hx2ryu/crashwatch-core";
 
 interface Options {
   logFile: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@crashwatch/provider-sentry",
+  "name": "@hx2ryu/crashwatch-provider-sentry",
   "version": "0.1.0-alpha.0",
   "description": "Sentry provider for crashwatch. Reads issues and events via the public Sentry REST API.",
   "keywords": [
@@ -35,7 +35,7 @@
     "node": ">=18"
   },
   "peerDependencies": {
-    "@crashwatch/core": "workspace:*"
+    "@hx2ryu/crashwatch-core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

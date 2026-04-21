@@ -14,7 +14,7 @@ defaults:
 providers:
   # -- Firebase Crashlytics (BigQuery export) --
   - id: firebase
-    plugin: "@crashwatch/provider-firebase"
+    plugin: "@hx2ryu/crashwatch-provider-firebase"
     options:
       projectId: "my-gcp-project"
       credentials: "${GOOGLE_APPLICATION_CREDENTIALS}"
@@ -22,7 +22,7 @@ providers:
 
   # -- Sentry (REST API) --
   - id: sentry
-    plugin: "@crashwatch/provider-sentry"
+    plugin: "@hx2ryu/crashwatch-provider-sentry"
     options:
       authToken: "${SENTRY_AUTH_TOKEN}"
       org: "my-org"
@@ -31,7 +31,7 @@ providers:
 
 notifiers:
   - id: slack
-    plugin: "@crashwatch/notifier-webhook"
+    plugin: "@hx2ryu/crashwatch-notifier-webhook"
     options:
       url: "${SLACK_WEBHOOK_URL}"
       bodyTemplate: slack-incoming-webhook

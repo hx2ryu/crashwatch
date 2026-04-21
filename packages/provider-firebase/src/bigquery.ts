@@ -2,7 +2,7 @@
  * Thin wrapper over @google-cloud/bigquery that is loaded lazily.
  *
  * We deliberately do not `import` the SDK statically so that:
- *   - `@crashwatch/provider-firebase` can be installed without the heavy
+ *   - `@hx2ryu/crashwatch-provider-firebase` can be installed without the heavy
  *     GCP transitive deps when BigQuery is not in use.
  *   - Runtime errors about the SDK surface the install-hint clearly.
  */
@@ -35,7 +35,7 @@ export async function createBigqueryClient(
     BigQueryCtor = (mod as unknown as { BigQuery: new (opts: unknown) => BigQueryShape }).BigQuery;
   } catch (err) {
     throw new Error(
-      "@crashwatch/provider-firebase requires @google-cloud/bigquery in " +
+      "@hx2ryu/crashwatch-provider-firebase requires @google-cloud/bigquery in " +
         "bigquery mode. Install it:\n" +
         "  pnpm add @google-cloud/bigquery\n\n" +
         `Underlying error: ${(err as Error).message}`,

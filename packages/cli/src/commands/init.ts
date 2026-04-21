@@ -14,14 +14,14 @@ defaults:
 
 providers:
   - id: firebase
-    plugin: "@crashwatch/provider-firebase"
+    plugin: "@hx2ryu/crashwatch-provider-firebase"
     options:
       projectId: "your-gcp-project"
       credentials: "\${GOOGLE_APPLICATION_CREDENTIALS}"
 
 notifiers:
   - id: webhook
-    plugin: "@crashwatch/notifier-webhook"
+    plugin: "@hx2ryu/crashwatch-notifier-webhook"
     options:
       url: "\${CRASHWATCH_WEBHOOK_URL}"
 

@@ -1,4 +1,4 @@
-# @crashwatch/provider-firebase
+# @hx2ryu/crashwatch-provider-firebase
 
 Firebase Crashlytics provider for [crashwatch](../../README.md).
 
@@ -20,7 +20,7 @@ You pass the fully qualified name to the provider per app (see below).
 ## Install
 
 ```bash
-pnpm add @crashwatch/provider-firebase @google-cloud/bigquery
+pnpm add @hx2ryu/crashwatch-provider-firebase @google-cloud/bigquery
 ```
 
 `@google-cloud/bigquery` is a peer dependency so the package can be installed without it until you actually wire Firebase in.
@@ -43,7 +43,7 @@ Minimum IAM roles on the dataset:
 version: 1
 providers:
   - id: firebase
-    plugin: "@crashwatch/provider-firebase"
+    plugin: "@hx2ryu/crashwatch-provider-firebase"
     options:
       projectId: "my-gcp-project"
       credentials: "${GOOGLE_APPLICATION_CREDENTIALS}"

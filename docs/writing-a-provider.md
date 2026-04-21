@@ -20,7 +20,7 @@ import type {
   IssueDetail,
   IssueFilter,
   ProviderFactory,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 interface MyOptions { apiKey: string }
 

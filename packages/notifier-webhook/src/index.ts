@@ -3,7 +3,7 @@ import type {
   Notifier,
   NotifierFactory,
   NotifyContext,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 export interface WebhookNotifierOptions {
   url: string;

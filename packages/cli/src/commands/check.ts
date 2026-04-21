@@ -1,4 +1,4 @@
-import { DEFAULT_THRESHOLDS, JsonlSnapshotStore } from "@crashwatch/core";
+import { DEFAULT_THRESHOLDS, JsonlSnapshotStore } from "@hx2ryu/crashwatch-core";
 import type {
   Alert,
   AppConfig,
@@ -9,7 +9,7 @@ import type {
   Platform,
   Snapshot,
   Thresholds,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 import { parseArgs } from "../index.js";
 import { loadAndResolve } from "../plugins.js";

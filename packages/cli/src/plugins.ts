@@ -1,7 +1,7 @@
 import { pathToFileURL } from "node:url";
 import { isAbsolute, resolve } from "node:path";
 
-import { defaultDetector, loadConfig } from "@crashwatch/core";
+import { defaultDetector, loadConfig } from "@hx2ryu/crashwatch-core";
 import type {
   CrashProvider,
   CrashwatchConfig,
@@ -12,7 +12,7 @@ import type {
   NotifierFactory,
   ProviderFactory,
   TrackerFactory,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 interface Resolved {
   config: CrashwatchConfig;

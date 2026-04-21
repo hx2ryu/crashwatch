@@ -4,7 +4,7 @@ import type {
   TicketRef,
   TrackerContext,
   TrackerFactory,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 import {
   GitHubApiClient,
@@ -30,7 +30,7 @@ import {
  * Config sample:
  *   trackers:
  *     - id: github
- *       plugin: "@crashwatch/tracker-github-issues"
+ *       plugin: "@hx2ryu/crashwatch-tracker-github-issues"
  *       options:
  *         authToken: "${GITHUB_TOKEN}"
  *         defaultOwner: "my-org"
@@ -137,7 +137,7 @@ export class GitHubIssuesTracker implements IssueTracker {
         // Re-throw with the original actionable message; dedup is the caller's
         // responsibility via the ticket URL recorded on the alert.
         throw new Error(
-          `@crashwatch/tracker-github-issues: could not create issue in ` +
+          `@hx2ryu/crashwatch-tracker-github-issues: could not create issue in ` +
             `${owner}/${repo}. ${err.message}`,
         );
       }
@@ -156,7 +156,7 @@ export class GitHubIssuesTracker implements IssueTracker {
     const repo = perAlert.repo ?? this.options.defaultRepo;
     if (!owner || !repo) {
       throw new Error(
-        "@crashwatch/tracker-github-issues: `owner` and `repo` are required. " +
+        "@hx2ryu/crashwatch-tracker-github-issues: `owner` and `repo` are required. " +
           "Set `defaultOwner` + `defaultRepo` in the tracker options, or pass " +
           "`owner` + `repo` per-alert via the tracker context options. " +
           `Got owner=${owner ?? "<missing>"} repo=${repo ?? "<missing>"}.`,

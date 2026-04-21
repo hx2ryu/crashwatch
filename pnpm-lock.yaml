@@ -20,7 +20,7 @@ importers:
 
   packages/cli:
     dependencies:
-      '@crashwatch/core':
+      '@hx2ryu/crashwatch-core':
         specifier: workspace:*
         version: link:../core
 
@@ -32,37 +32,37 @@ importers:
 
   packages/notifier-slack:
     dependencies:
-      '@crashwatch/core':
+      '@hx2ryu/crashwatch-core':
         specifier: workspace:*
         version: link:../core
-      '@crashwatch/notifier-webhook':
+      '@hx2ryu/crashwatch-notifier-webhook':
         specifier: workspace:*
         version: link:../notifier-webhook
 
   packages/notifier-webhook:
     dependencies:
-      '@crashwatch/core':
+      '@hx2ryu/crashwatch-core':
         specifier: workspace:*
         version: link:../core
 
   packages/provider-firebase:
     dependencies:
-      '@crashwatch/core':
-        specifier: workspace:*
-        version: link:../core
       '@google-cloud/bigquery':
         specifier: ^7.0.0
         version: 7.9.4
+      '@hx2ryu/crashwatch-core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/provider-sentry:
     dependencies:
-      '@crashwatch/core':
+      '@hx2ryu/crashwatch-core':
         specifier: workspace:*
         version: link:../core
 
   packages/tracker-github-issues:
     dependencies:
-      '@crashwatch/core':
+      '@hx2ryu/crashwatch-core':
         specifier: workspace:*
         version: link:../core
 

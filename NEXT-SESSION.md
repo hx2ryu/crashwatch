@@ -6,7 +6,7 @@
 
 ## Context for a fresh Claude / engineer
 
-crashwatch is a pre-alpha, vendor-neutral crash observability monorepo. Core knows nothing about any specific backend; providers (`@crashwatch/provider-*`), notifiers (`@crashwatch/notifier-*`), trackers (`@crashwatch/tracker-*`) are plugins loaded by id. Design rationale in the root [README](./README.md), short version: **the core must never acquire a dependency on a specific vendor**; if a PR tempts you that way, split it into a plugin.
+crashwatch is a pre-alpha, vendor-neutral crash observability monorepo. Core knows nothing about any specific backend; providers (`@hx2ryu/crashwatch-provider-*`), notifiers (`@hx2ryu/crashwatch-notifier-*`), trackers (`@hx2ryu/crashwatch-tracker-*`) are plugins loaded by id. Design rationale in the root [README](./README.md), short version: **the core must never acquire a dependency on a specific vendor**; if a PR tempts you that way, split it into a plugin.
 
 Repo is **private**, owned by `hx2ryu` on GitHub: https://github.com/hx2ryu/crashwatch. Local clone at `~/dev/personal/crashwatch`. License MIT.
 
@@ -26,14 +26,14 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 
 **What works end-to-end:**
 - `crashwatch init / validate / check` CLI loads a YAML/JSON config, resolves plugins via `import()`, writes JSONL snapshots + alerts, dispatches notifiers.
-- `@crashwatch/provider-firebase` implements `listIssues / getIssue / listEvents / getReport` against the Crashlytics BigQuery export (lazy-loads `@google-cloud/bigquery`).
-- `@crashwatch/provider-sentry` implements `listIssues / getIssue / listEvents` against the public Sentry REST API with cursor pagination + 429/503 backoff. Advertises `pagination` and `signals` capabilities (`SIGNAL_REGRESSED`, `SIGNAL_EARLY`). No extra deps — pure `fetch`.
-- `@crashwatch/tracker-github-issues` implements `IssueTracker` via GitHub REST API (`POST /repos/{owner}/{repo}/issues`). Pure `fetch`, jittered backoff on 429/502/503, clear 401/403 messages. Returns the created issue's `html_url` so the runner can persist it on the alert for dedup. Per-alert owner/repo/labels/assignees override tracker defaults.
-- `@crashwatch/notifier-webhook` + `@crashwatch/notifier-slack` deliver alerts to a URL.
+- `@hx2ryu/crashwatch-provider-firebase` implements `listIssues / getIssue / listEvents / getReport` against the Crashlytics BigQuery export (lazy-loads `@google-cloud/bigquery`).
+- `@hx2ryu/crashwatch-provider-sentry` implements `listIssues / getIssue / listEvents` against the public Sentry REST API with cursor pagination + 429/503 backoff. Advertises `pagination` and `signals` capabilities (`SIGNAL_REGRESSED`, `SIGNAL_EARLY`). No extra deps — pure `fetch`.
+- `@hx2ryu/crashwatch-tracker-github-issues` implements `IssueTracker` via GitHub REST API (`POST /repos/{owner}/{repo}/issues`). Pure `fetch`, jittered backoff on 429/502/503, clear 401/403 messages. Returns the created issue's `html_url` so the runner can persist it on the alert for dedup. Per-alert owner/repo/labels/assignees override tracker defaults.
+- `@hx2ryu/crashwatch-notifier-webhook` + `@hx2ryu/crashwatch-notifier-slack` deliver alerts to a URL.
 - `defaultDetector` emits `new_issue / spike / regression / resurfaced` using provider-supplied counts and signals. Spike path supports two baselines: same-weekday (`baselineSource: "week_over_week"`) and prior-release (`baselineSource: "prior_release"`). When both fire, only the larger-delta alert is emitted.
-- Detector is now **pluggable via config**. `config.detector: { plugin, options? }` replaces `defaultDetector` wholesale. CLI resolves it the same way provider/notifier/tracker plugins are resolved. `DetectorFactory` exported from `@crashwatch/core`.
+- Detector is now **pluggable via config**. `config.detector: { plugin, options? }` replaces `defaultDetector` wholesale. CLI resolves it the same way provider/notifier/tracker plugins are resolved. `DetectorFactory` exported from `@hx2ryu/crashwatch-core`.
 - Per-package READMEs now exist for every package; `docs/ROADMAP.md` is the public roadmap (NEXT-SESSION.md is internal session notes).
-- Detector version comparison is semver-aware (`1.10.0 > 1.2.0`); `compareVersions` is exported from `@crashwatch/core` for reuse in custom detectors.
+- Detector version comparison is semver-aware (`1.10.0 > 1.2.0`); `compareVersions` is exported from `@hx2ryu/crashwatch-core` for reuse in custom detectors.
 - All 7 publishable packages carry full npm metadata (`publishConfig.access: "public"`, `repository.directory`, `homepage`, `bugs`, `keywords`, `files` excluding compiled tests). `pnpm -r publish --dry-run --access public` is clean; tarballs 2.7 kB–18.8 kB each, no test leakage, `workspace:*` → `0.1.0-alpha.0` rewrite confirmed.
 - CI runs on `actions/checkout@v6` + `actions/setup-node@v6` (Node 22 LTS) + `pnpm/action-setup@v5` — silencing the Node 20 deprecation warning ahead of GitHub's 2026-09-16 removal.
 - 191 tests across 7 packages; GitHub Actions runs `pnpm install / -r build / typecheck / test` on every push + PR and is currently green.
@@ -41,7 +41,7 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 **What is deferred and why:**
 - No live BigQuery / Sentry / GitHub smoke test yet — depends on real credentials.
 - Two providers alive now; the `CrashProvider` interface has been pressure-tested against Sentry's shape (pagination, signals) but has not yet seen Bugsnag / Rollbar.
-- Nothing is on npm yet. Dry-run is clean; the real `pnpm -r publish --access public` is gated on explicit human sign-off + npm org decision (`@crashwatch` scope needs to be registered/claimed first).
+- Nothing is on npm yet. Dry-run is clean; real `pnpm -r publish --access public` is gated on `npm login` + OTP. Scope decided: packages ship under `@hx2ryu/crashwatch-*` (personal npm user scope, already claimed on npmjs.com).
 
 **Last commits on main:** see `git log`. Recent feature work:
 `chore(release): prep 0.1.0-alpha.0 publish dry-run` →
@@ -57,14 +57,13 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 
 ### 1. Actual `pnpm -r publish --access public` for 0.1.0-alpha.0
 
-Dry-run is clean; everything gating the real publish is non-code:
+Scope is `@hx2ryu/*` (personal user scope, no org needed). Dry-run is clean after rename. Gating items:
 
-- Decide / claim the `@crashwatch` npm org (scoped packages need the scope owned; `pnpm publish --access public` won't silently create it).
-- Log into npm in the publishing machine (`npm whoami` / `npm login`). 2FA: decide whether to require `npm publish --otp=<code>` or configure an automation token.
-- Confirm the license / homepage / repo URLs one more time with a human before the tarballs become immutable.
-- Run `pnpm -r publish --access public`. Each package-tarball contents and the packed `package.json` have already been inspected in session `56ecc0a`/`b21f6cf`; no surprises are expected.
-- After publish: verify a fresh `pnpm add @crashwatch/core@0.1.0-alpha.0` in a scratch dir resolves cleanly, and that deep deps (e.g. `@crashwatch/notifier-slack` → `@crashwatch/notifier-webhook` pinned to `0.1.0-alpha.0`) install without conflict.
-- Git-tag the release: `git tag v0.1.0-alpha.0 && git push --tags`. Create a GH release with the CHANGELOG's `[Unreleased]` block (rename the section in CHANGELOG after publish).
+- `npm login` on the publishing machine; verify with `npm whoami` → `hx2ryu`.
+- If 2FA is `auth-and-writes`, prepare to pass `--otp=<6digit>` per publish.
+- Run `pnpm -r publish --access public --otp=<code>`. pnpm's `workspace:*` rewrite to `0.1.0-alpha.0` has already been verified in the tarballs.
+- After publish: in a scratch dir, `pnpm add @hx2ryu/crashwatch-core@0.1.0-alpha.0` and verify deep deps (`@hx2ryu/crashwatch-notifier-slack` → `@hx2ryu/crashwatch-notifier-webhook` pinned to `0.1.0-alpha.0`) resolve cleanly.
+- Git-tag + GH release: `git tag v0.1.0-alpha.0 && git push --tags && gh release create v0.1.0-alpha.0 --prerelease --notes-from-tag`.
 
 ### 2. Live BigQuery / Sentry / GitHub smoke
 

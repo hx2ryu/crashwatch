@@ -10,7 +10,7 @@ import type {
   ProviderFactory,
   ReportKind,
   ReportRow,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 import {
   createBigqueryClient,
@@ -205,7 +205,7 @@ function tableFor(app: AppRef): string {
   if (!table) {
     throw new Error(
       `App "${app.name}" (${app.platform}) is missing providerOptions.bigqueryTable ` +
-        `for @crashwatch/provider-firebase.`,
+        `for @hx2ryu/crashwatch-provider-firebase.`,
     );
   }
   assertValidTableId(table);

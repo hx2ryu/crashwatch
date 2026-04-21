@@ -1,4 +1,4 @@
-import { loadConfig } from "@crashwatch/core";
+import { loadConfig } from "@hx2ryu/crashwatch-core";
 
 import { parseArgs } from "../index.js";
 import { resolvePlugins } from "../plugins.js";

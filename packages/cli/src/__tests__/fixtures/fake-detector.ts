@@ -1,4 +1,4 @@
-import type { Detector, DetectorFactory } from "@crashwatch/core";
+import type { Detector, DetectorFactory } from "@hx2ryu/crashwatch-core";
 
 /**
  * Deterministic fake detector for CLI end-to-end tests.

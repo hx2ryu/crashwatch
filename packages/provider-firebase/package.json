@@ -1,5 +1,5 @@
 {
-  "name": "@crashwatch/provider-firebase",
+  "name": "@hx2ryu/crashwatch-provider-firebase",
   "version": "0.1.0-alpha.0",
   "description": "Firebase Crashlytics provider for crashwatch. Reads the Crashlytics BigQuery export — the only officially supported machine-readable source.",
   "keywords": [
@@ -36,7 +36,7 @@
     "node": ">=18"
   },
   "peerDependencies": {
-    "@crashwatch/core": "workspace:*",
+    "@hx2ryu/crashwatch-core": "workspace:*",
     "@google-cloud/bigquery": "^7.0.0"
   },
   "peerDependenciesMeta": {

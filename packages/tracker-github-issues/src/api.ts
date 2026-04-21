@@ -76,7 +76,7 @@ export class GitHubApiClient {
   constructor(private readonly opts: GitHubApiOptions) {
     if (!opts.authToken) {
       throw new Error(
-        "@crashwatch/tracker-github-issues: `authToken` is required. Create a " +
+        "@hx2ryu/crashwatch-tracker-github-issues: `authToken` is required. Create a " +
           "personal access token at https://github.com/settings/tokens with the " +
           "`repo` scope (or `public_repo` for public repos only), then pass it " +
           "as `authToken` in the tracker options.",

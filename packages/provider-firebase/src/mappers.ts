@@ -1,4 +1,4 @@
-import type { CrashEvent, Issue, ReportRow } from "@crashwatch/core";
+import type { CrashEvent, Issue, ReportRow } from "@hx2ryu/crashwatch-core";
 
 /**
  * BigQuery returns dates as Date-like objects with `.value` ISO strings;

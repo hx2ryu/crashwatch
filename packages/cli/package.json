@@ -1,5 +1,5 @@
 {
-  "name": "@crashwatch/cli",
+  "name": "@hx2ryu/crashwatch-cli",
   "version": "0.1.0-alpha.0",
   "description": "CLI runner for crashwatch: load config, collect, detect, dispatch.",
   "keywords": [
@@ -39,7 +39,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@crashwatch/core": "workspace:*"
+    "@hx2ryu/crashwatch-core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

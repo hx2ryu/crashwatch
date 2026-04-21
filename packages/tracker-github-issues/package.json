@@ -1,5 +1,5 @@
 {
-  "name": "@crashwatch/tracker-github-issues",
+  "name": "@hx2ryu/crashwatch-tracker-github-issues",
   "version": "0.1.0-alpha.0",
   "description": "GitHub Issues tracker for crashwatch. Opens issues in a GitHub repository when alerts fire.",
   "keywords": [
@@ -35,7 +35,7 @@
     "node": ">=18"
   },
   "peerDependencies": {
-    "@crashwatch/core": "workspace:*"
+    "@hx2ryu/crashwatch-core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

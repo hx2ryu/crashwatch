@@ -1,17 +1,17 @@
-# @crashwatch/core
+# @hx2ryu/crashwatch-core
 
 Vendor-neutral types, config loader, detector, and storage primitives for [crashwatch](../../README.md).
 
 ## What this is
 
-`@crashwatch/core` is the glue. It defines the shapes everything else speaks in — `Issue`, `CrashEvent`, `Alert`, `Snapshot` — plus the plugin interfaces (`CrashProvider`, `Notifier`, `IssueTracker`) that providers, notifiers, and trackers implement.
+`@hx2ryu/crashwatch-core` is the glue. It defines the shapes everything else speaks in — `Issue`, `CrashEvent`, `Alert`, `Snapshot` — plus the plugin interfaces (`CrashProvider`, `Notifier`, `IssueTracker`) that providers, notifiers, and trackers implement.
 
-**Hard rule:** no vendor logic lives here. The core never imports a vendor SDK and never names a specific product in its public types. Firebase Crashlytics, Sentry, Bugsnag, Slack — all of that belongs in plugin packages. If a change to `@crashwatch/core` is tempting you to import or even mention a vendor, it belongs in a plugin instead.
+**Hard rule:** no vendor logic lives here. The core never imports a vendor SDK and never names a specific product in its public types. Firebase Crashlytics, Sentry, Bugsnag, Slack — all of that belongs in plugin packages. If a change to `@hx2ryu/crashwatch-core` is tempting you to import or even mention a vendor, it belongs in a plugin instead.
 
 ## Install
 
 ```bash
-pnpm add @crashwatch/core
+pnpm add @hx2ryu/crashwatch-core
 ```
 
 One runtime dependency: [`yaml`](https://www.npmjs.com/package/yaml). Requires Node ≥ 18.
@@ -26,9 +26,9 @@ One runtime dependency: [`yaml`](https://www.npmjs.com/package/yaml). Requires N
 
 ### Plugin interfaces
 
-- `CrashProvider` + `ProviderFactory<TOptions>` — implement this in `@crashwatch/provider-*` packages.
-- `Notifier` + `NotifierFactory<TOptions>` — implement this in `@crashwatch/notifier-*` packages.
-- `IssueTracker` + `TrackerFactory<TOptions>` — implement this in `@crashwatch/tracker-*` packages.
+- `CrashProvider` + `ProviderFactory<TOptions>` — implement this in `@hx2ryu/crashwatch-provider-*` packages.
+- `Notifier` + `NotifierFactory<TOptions>` — implement this in `@hx2ryu/crashwatch-notifier-*` packages.
+- `IssueTracker` + `TrackerFactory<TOptions>` — implement this in `@hx2ryu/crashwatch-tracker-*` packages.
 - `Detector` + `DetectorFactory<TOptions>` — implement this to replace the default rule set via `config.detector`.
 - `ProviderCapability` — the string enum used by `CrashProvider.supports()` (`listIssues`, `listEvents`, `getReport`, `pagination`, `signals`).
 
@@ -59,7 +59,7 @@ Precedence: regression > resurfaced; new_issue short-circuits spike on brand-new
 ### Writing a custom detector
 
 ```ts
-import type { Detector, DetectorFactory } from "@crashwatch/core";
+import type { Detector, DetectorFactory } from "@hx2ryu/crashwatch-core";
 
 const factory: DetectorFactory<{ onlyApp?: string }> = (opts) => {
   const detector: Detector = (current, history, thresholds) => {
@@ -96,7 +96,7 @@ import type {
   Issue,
   IssueFilter,
   ProviderFactory,
-} from "@crashwatch/core";
+} from "@hx2ryu/crashwatch-core";
 
 const factory: ProviderFactory<{ apiKey: string }> = ({ apiKey }): CrashProvider => ({
   id: "my-provider",
@@ -117,15 +117,15 @@ export default factory;
 
 Real-world implementations worth reading before writing your own:
 
-- [`@crashwatch/provider-firebase`](../provider-firebase) — BigQuery-backed provider, lazy-loads a heavy SDK.
-- [`@crashwatch/provider-sentry`](../provider-sentry) — pure `fetch`, cursor pagination, provider-emitted signals.
-- [`@crashwatch/notifier-webhook`](../notifier-webhook) — minimal notifier with a body-template switch.
+- [`@hx2ryu/crashwatch-provider-firebase`](../provider-firebase) — BigQuery-backed provider, lazy-loads a heavy SDK.
+- [`@hx2ryu/crashwatch-provider-sentry`](../provider-sentry) — pure `fetch`, cursor pagination, provider-emitted signals.
+- [`@hx2ryu/crashwatch-notifier-webhook`](../notifier-webhook) — minimal notifier with a body-template switch.
 
 ## Development
 
 ```bash
-pnpm --filter @crashwatch/core test
-pnpm --filter @crashwatch/core build
+pnpm --filter @hx2ryu/crashwatch-core test
+pnpm --filter @hx2ryu/crashwatch-core build
 ```
 
 Tests use `tsx` + `node --test`; no build step is required to run them.

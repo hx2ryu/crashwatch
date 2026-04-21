@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, test } from "node:test";
 
-import type { AppRef } from "@crashwatch/core";
+import type { AppRef } from "@hx2ryu/crashwatch-core";
 
 import { SentryApiClient, type FetchLike } from "../api.js";
 import { SentryProvider, createSentryProvider } from "../index.js";

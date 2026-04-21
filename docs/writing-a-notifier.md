@@ -3,7 +3,7 @@
 A notifier is a plugin that turns an `Alert` into a message on some channel — Slack, email, webhook, PagerDuty, SMS, a dashboard, anything.
 
 ```ts
-import type { Alert, Notifier, NotifierFactory, NotifyContext } from "@crashwatch/core";
+import type { Alert, Notifier, NotifierFactory, NotifyContext } from "@hx2ryu/crashwatch-core";
 
 interface MyOptions { token: string }
 
