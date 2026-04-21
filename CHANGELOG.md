@@ -7,6 +7,16 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 ## [Unreleased]
 
 ### Added
+- **CI-driven release workflow** (`.github/workflows/release.yml`). Pushing a
+  `v*.*.*` tag triggers `pnpm install / build / typecheck / test` followed by
+  `pnpm -r publish --access public --tag <derived> --no-git-checks --provenance`
+  across all 7 packages. The dist-tag is inferred from the version suffix
+  (`-alpha`/`-beta`/`-rc` → same prefix; otherwise `latest`) or can be
+  overridden via `workflow_dispatch` input. `id-token: write` + `--provenance`
+  attaches a GitHub-OIDC provenance bundle that surfaces as a ✓ badge on
+  npmjs (repo is public, so provenance is verifiable). Auth is a granular npm
+  token scoped to `@hx2ryu/*` stored in the `NPM_TOKEN` repo secret; see
+  [`docs/release.md`](docs/release.md) for the setup + per-release runbook.
 - **Scope decision: packages ship under `@hx2ryu/crashwatch-*`.** Every
   publishable package was renamed from `@crashwatch/<pkg>` to
   `@hx2ryu/crashwatch-<pkg>` — personal npm user scope, single-maintainer

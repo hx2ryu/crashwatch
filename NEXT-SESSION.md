@@ -55,15 +55,19 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 
 ## Next up (priority order)
 
-### 1. Actual `pnpm -r publish --access public` for 0.1.0-alpha.0
+### 1. Cut `v0.1.0-alpha.0` via the release workflow
 
-Scope is `@hx2ryu/*` (personal user scope, no org needed). Dry-run is clean after rename. Gating items:
+Publishing is now CI-driven — `.github/workflows/release.yml` fires on `v*.*.*` tag push and publishes all 7 packages with provenance. See [`docs/release.md`](./docs/release.md) for the full runbook.
 
-- `npm login` on the publishing machine; verify with `npm whoami` → `hx2ryu`.
-- If 2FA is `auth-and-writes`, prepare to pass `--otp=<6digit>` per publish.
-- Run `pnpm -r publish --access public --otp=<code>`. pnpm's `workspace:*` rewrite to `0.1.0-alpha.0` has already been verified in the tarballs.
-- After publish: in a scratch dir, `pnpm add @hx2ryu/crashwatch-core@0.1.0-alpha.0` and verify deep deps (`@hx2ryu/crashwatch-notifier-slack` → `@hx2ryu/crashwatch-notifier-webhook` pinned to `0.1.0-alpha.0`) resolve cleanly.
-- Git-tag + GH release: `git tag v0.1.0-alpha.0 && git push --tags && gh release create v0.1.0-alpha.0 --prerelease --notes-from-tag`.
+Gating items for the first release:
+
+- One-time: create a granular npm token scoped to `@hx2ryu/*` (Read+Write, "Bypass 2FA"). Save as repo secret: `gh secret set NPM_TOKEN --body "<token>"`.
+- `git tag v0.1.0-alpha.0 && git push --tags` — workflow takes over.
+- Watch the Actions tab; the workflow should publish 7 tarballs with provenance ✓ badges.
+- Smoke-test in a scratch dir: `pnpm add @hx2ryu/crashwatch-core@0.1.0-alpha.0`, verify deep deps (`@hx2ryu/crashwatch-notifier-slack` → `@hx2ryu/crashwatch-notifier-webhook` pinned to `0.1.0-alpha.0`) resolve cleanly.
+- `gh release create v0.1.0-alpha.0 --prerelease --notes-from-tag` for the GH release entry.
+
+After first publish, each package can optionally be migrated to full OIDC Trusted Publishing — removes the long-lived `NPM_TOKEN`. Worth doing before 1.0.
 
 ### 2. Live BigQuery / Sentry / GitHub smoke
 

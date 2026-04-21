@@ -1,0 +1,81 @@
+name: release
+
+# Publishes every workspace package to npm when a tag matching `v*.*.*`
+# (e.g. `v0.1.0-alpha.0`, `v0.2.0`) is pushed to the repo. Can also be run
+# manually via the "Run workflow" button on the Actions tab.
+#
+# Auth: a granular npm token stored in the `NPM_TOKEN` repo secret, scoped to
+# `@hx2ryu/*` with Read+Write and "Bypass 2FA" enabled. See docs/release.md.
+#
+# Provenance: `id-token: write` + `--provenance` gives tarballs a GitHub-OIDC
+# signed provenance attestation. Since the repo is public, npm displays a ✓
+# "Provenance" badge on each published version's page.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      dist_tag:
+        description: 'npm dist-tag (alpha / beta / rc / latest)'
+        required: false
+        default: 'alpha'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: pnpm/action-setup@v5
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm -r build
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Derive dist-tag from version
+        id: disttag
+        run: |
+          # Prefer explicit workflow_dispatch input; otherwise infer from the
+          # tag. A semver-prerelease (1.2.3-alpha.0) → its tag prefix; a clean
+          # release (1.2.3) → "latest".
+          if [ -n "${{ inputs.dist_tag }}" ]; then
+            echo "tag=${{ inputs.dist_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+            case "$VERSION" in
+              *-alpha*) echo "tag=alpha" >> "$GITHUB_OUTPUT" ;;
+              *-beta*)  echo "tag=beta"  >> "$GITHUB_OUTPUT" ;;
+              *-rc*)    echo "tag=rc"    >> "$GITHUB_OUTPUT" ;;
+              *)        echo "tag=latest" >> "$GITHUB_OUTPUT" ;;
+            esac
+          fi
+
+      - name: Publish to npm
+        run: |
+          pnpm -r publish \
+            --access public \
+            --tag "${{ steps.disttag.outputs.tag }}" \
+            --no-git-checks \
+            --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
