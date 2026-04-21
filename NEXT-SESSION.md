@@ -41,7 +41,7 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 **What is deferred and why:**
 - No live BigQuery / Sentry / GitHub smoke test yet — depends on real credentials.
 - Two providers alive now; the `CrashProvider` interface has been pressure-tested against Sentry's shape (pagination, signals) but has not yet seen Bugsnag / Rollbar.
-- Nothing is on npm yet. Dry-run is clean; real `pnpm -r publish --access public` is gated on `npm login` + OTP. Scope decided: packages ship under `@hx2ryu/crashwatch-*` (personal npm user scope, already claimed on npmjs.com).
+- **0.1.0-alpha.0 SHIPPED** on 2026-04-21: all 7 packages on npm under `@hx2ryu/crashwatch-*` (dist-tag `alpha`), each with SLSA v1 provenance signed by GitHub Actions OIDC. First alpha released via `.github/workflows/release.yml` + a 1-day granular token.
 
 **Last commits on main:** see `git log`. Recent feature work:
 `chore(release): prep 0.1.0-alpha.0 publish dry-run` →
@@ -55,19 +55,17 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 
 ## Next up (priority order)
 
-### 1. Cut `v0.1.0-alpha.0` via the release workflow
+### 1. Migrate npm publish to Trusted Publishing (remove `NPM_TOKEN`)
 
-Publishing is now CI-driven — `.github/workflows/release.yml` fires on `v*.*.*` tag push and publishes all 7 packages with provenance. See [`docs/release.md`](./docs/release.md) for the full runbook.
+`0.1.0-alpha.0` shipped on 2026-04-21 using a 1-day granular token. Now that the 7 packages exist on npm, we can configure per-package Trusted Publishers and drop the long-lived token.
 
-Gating items for the first release:
+Steps:
 
-- One-time: create a granular npm token scoped to `@hx2ryu/*` (Read+Write, "Bypass 2FA"). Save as repo secret: `gh secret set NPM_TOKEN --body "<token>"`.
-- `git tag v0.1.0-alpha.0 && git push --tags` — workflow takes over.
-- Watch the Actions tab; the workflow should publish 7 tarballs with provenance ✓ badges.
-- Smoke-test in a scratch dir: `pnpm add @hx2ryu/crashwatch-core@0.1.0-alpha.0`, verify deep deps (`@hx2ryu/crashwatch-notifier-slack` → `@hx2ryu/crashwatch-notifier-webhook` pinned to `0.1.0-alpha.0`) resolve cleanly.
-- `gh release create v0.1.0-alpha.0 --prerelease --notes-from-tag` for the GH release entry.
-
-After first publish, each package can optionally be migrated to full OIDC Trusted Publishing — removes the long-lived `NPM_TOKEN`. Worth doing before 1.0.
+- For each of the 7 packages, go to `https://www.npmjs.com/package/@hx2ryu/crashwatch-<pkg>/access` → Trusted Publishers → Add → GitHub Actions → repo `hx2ryu/crashwatch`, workflow `release.yml`, environment blank.
+- Remove the `env: NODE_AUTH_TOKEN` line from `.github/workflows/release.yml` and its setup-node step's `registry-url` is already present (keeps .npmrc configured).
+- Revoke `crashwatch-release-bootstrap-v2` on npm (will auto-expire within 1 day regardless, but revoke now for hygiene).
+- Delete the `NPM_TOKEN` repo secret: `gh secret delete NPM_TOKEN`.
+- Cut a throwaway patch release (e.g. 0.1.0-alpha.1 with a one-line doc bump) to verify pure-OIDC publish works before the next real release.
 
 ### 2. Live BigQuery / Sentry / GitHub smoke
 
@@ -102,10 +100,11 @@ With the alpha out in the wild, take another pass over the `CrashProvider` contr
 ## Suggested prompt for the next Claude Code session
 
 ```
-crashwatch 프로젝트 0.1.0-alpha.0 실제 npm publish를 진행해 줘.
+crashwatch 프로젝트 npm Trusted Publishing 전환 작업을 이어서 진행해 줘.
 리포는 ~/dev/personal/crashwatch (GitHub hx2ryu/crashwatch). 세부 컨텍스트는
-레포 루트의 NEXT-SESSION.md를 먼저 읽고, "Next up" 1번 작업을 진행해 줘.
-Dry-run은 이미 clean — npm 계정/스코프 확인 → publish → 태그 + GH release까지.
+레포 루트의 NEXT-SESSION.md "Next up" 1번 작업을 먼저 읽어 줘.
+7개 패키지 각각 Trusted Publisher 등록 안내 + workflow에서 NPM_TOKEN 제거
++ throwaway 0.1.0-alpha.1 release로 OIDC-only publish 검증까지.
 ```
 
 After that task is done, delete section "1." from the "Next up" list above and bump the "Current state" block so the next session picks up at section 2.

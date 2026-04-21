@@ -6,6 +6,12 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 
 ## [Unreleased]
 
+_No unreleased changes._
+
+## [0.1.0-alpha.0] — 2026-04-21
+
+First public alpha. All 7 packages published to npm under `@hx2ryu/crashwatch-*` with SLSA v1 provenance. See the [GitHub release](https://github.com/hx2ryu/crashwatch/releases/tag/v0.1.0-alpha.0) for user-facing notes; the detailed change log follows.
+
 ### Added
 - **CI-driven release workflow** (`.github/workflows/release.yml`). Pushing a
   `v*.*.*` tag triggers `pnpm install / build / typecheck / test` followed by
