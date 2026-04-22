@@ -8,6 +8,13 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 
 _No unreleased changes._
 
+## [0.1.0-alpha.4] — 2026-04-22
+
+Mechanical re-release. No user-visible behaviour change.
+
+### Changed
+- Release workflow removes the `npm install -g npm@latest` step: it was crashing with `MODULE_NOT_FOUND promise-retry` against Node 22.22.2's bundled npm. pnpm 10 has its own publish client with OIDC Trusted Publishing support, so forcing an npm upgrade wasn't necessary.
+
 ## [0.1.0-alpha.3] — 2026-04-22
 
 Mechanical re-release — 0.1.0-alpha.1 and 0.1.0-alpha.2 were tagged but never reached the npm registry; their workflow runs failed while bringing up OIDC Trusted Publishing (first on pnpm 9 lacking OIDC support, then on a pnpm-action-setup version-mismatch error). No user-visible behaviour change.

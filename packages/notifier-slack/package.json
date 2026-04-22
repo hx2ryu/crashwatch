@@ -1,6 +1,6 @@
 {
   "name": "@hx2ryu/crashwatch-notifier-slack",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "description": "Slack Incoming Webhook notifier for crashwatch.",
   "keywords": [
     "crashwatch",

@@ -42,16 +42,16 @@ jobs:
 
       - uses: pnpm/action-setup@v5
       # pnpm version is read from package.json's "packageManager" field.
-
-      - name: Upgrade npm for OIDC Trusted Publishing support
-        run: npm install -g npm@latest
+      # pnpm 10 has its own publish client with OIDC Trusted Publishing support;
+      # we do NOT `npm install -g npm@latest` because that breaks the Node 22
+      # bundled npm (MODULE_NOT_FOUND promise-retry mid-upgrade).
 
       - name: Log toolchain versions
         run: |
           node --version
           npm --version
           pnpm --version
-          echo "--- OIDC env (redacted) ---"
+          echo "--- OIDC env ---"
           [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && echo "ACTIONS_ID_TOKEN_REQUEST_URL: present" || echo "ACTIONS_ID_TOKEN_REQUEST_URL: MISSING"
           [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ] && echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: present" || echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: MISSING"
 
