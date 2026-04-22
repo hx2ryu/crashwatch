@@ -4,15 +4,21 @@ name: release
 # (e.g. `v0.1.0-alpha.0`, `v0.2.0`) is pushed to the repo. Can also be run
 # manually via the "Run workflow" button on the Actions tab.
 #
-# Auth: npm Trusted Publishing via GitHub OIDC. Each package under
-# `@hx2ryu/crashwatch-*` has a Trusted Publisher configured on npmjs.com
-# pointing at this repo + workflow, so no long-lived `NPM_TOKEN` is needed —
-# setup-node's `registry-url` plus `id-token: write` is enough for the CLI
-# to mint short-lived OIDC credentials per run. See docs/release.md.
+# Auth: a granular npm token stored in the `NPM_TOKEN` repo secret, scoped to
+# `@hx2ryu/*` with Read+Write and "Bypass 2FA" enabled.
 #
-# Provenance: `--provenance` + `id-token: write` attaches a SLSA v1 provenance
-# statement signed by GitHub Actions OIDC. Repo is public, so npm surfaces
-# the ✓ Provenance badge on every published version.
+# Why not OIDC Trusted Publishing? We tried (Trusted Publishers are already
+# configured on each of the 7 packages) but both pnpm 10.33 and the Node-22-
+# bundled npm 10.9 fail to perform the OIDC → npm token exchange, leading to
+# anonymous PUT requests and 404s. OIDC support sits behind pnpm 10+ runtime
+# work AND npm 11.5+. Once either lands cleanly, drop NODE_AUTH_TOKEN and
+# delete the NPM_TOKEN secret. See NEXT-SESSION.md "Next up" #1 and
+# docs/release.md for the migration plan.
+#
+# Provenance: `--provenance` + `id-token: write` still attaches a SLSA v1
+# provenance statement signed by GitHub Actions OIDC (sigstore is independent
+# of npm publish auth). Repo is public, so npm surfaces the ✓ Provenance badge
+# on every published version.
 
 on:
   push:
@@ -42,18 +48,6 @@ jobs:
 
       - uses: pnpm/action-setup@v5
       # pnpm version is read from package.json's "packageManager" field.
-      # pnpm 10 has its own publish client with OIDC Trusted Publishing support;
-      # we do NOT `npm install -g npm@latest` because that breaks the Node 22
-      # bundled npm (MODULE_NOT_FOUND promise-retry mid-upgrade).
-
-      - name: Log toolchain versions
-        run: |
-          node --version
-          npm --version
-          pnpm --version
-          echo "--- OIDC env ---"
-          [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && echo "ACTIONS_ID_TOKEN_REQUEST_URL: present" || echo "ACTIONS_ID_TOKEN_REQUEST_URL: MISSING"
-          [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ] && echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: present" || echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: MISSING"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -93,4 +87,5 @@ jobs:
             --no-git-checks \
             --provenance
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"

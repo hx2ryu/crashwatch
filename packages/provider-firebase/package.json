@@ -1,6 +1,6 @@
 {
   "name": "@hx2ryu/crashwatch-provider-firebase",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-alpha.5",
   "description": "Firebase Crashlytics provider for crashwatch. Reads the Crashlytics BigQuery export — the only officially supported machine-readable source.",
   "keywords": [
     "crashwatch",

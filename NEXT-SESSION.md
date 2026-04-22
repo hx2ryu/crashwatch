@@ -55,17 +55,17 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 
 ## Next up (priority order)
 
-### 1. Migrate npm publish to Trusted Publishing (remove `NPM_TOKEN`)
+### 1. Finish the migration to OIDC Trusted Publishing
 
-`0.1.0-alpha.0` shipped on 2026-04-21 using a 1-day granular token. Now that the 7 packages exist on npm, we can configure per-package Trusted Publishers and drop the long-lived token.
+**Status on 2026-04-22**: Trusted Publishers are configured on all 7 packages; `id-token: write` + `ACTIONS_ID_TOKEN_REQUEST_{URL,TOKEN}` are confirmed present in the workflow env. The OIDC-only path fails end-to-end because neither pnpm 10.33's `publish` nor the Node-22-bundled npm 10.9.7 perform the OIDC → npm token exchange — PUT goes out unauthenticated, registry returns 404. The release workflow is on `NPM_TOKEN` + "Bypass 2FA" again.
 
-Steps:
+Try again when ONE of the following is true:
 
-- For each of the 7 packages, go to `https://www.npmjs.com/package/@hx2ryu/crashwatch-<pkg>/access` → Trusted Publishers → Add → GitHub Actions → repo `hx2ryu/crashwatch`, workflow `release.yml`, environment blank.
-- Remove the `env: NODE_AUTH_TOKEN` line from `.github/workflows/release.yml` and its setup-node step's `registry-url` is already present (keeps .npmrc configured).
-- Revoke `crashwatch-release-bootstrap-v2` on npm (will auto-expire within 1 day regardless, but revoke now for hygiene).
-- Delete the `NPM_TOKEN` repo secret: `gh secret delete NPM_TOKEN`.
-- Cut a throwaway patch release (e.g. 0.1.0-alpha.1 with a one-line doc bump) to verify pure-OIDC publish works before the next real release.
+- **pnpm** ships an OIDC-capable `publish` (track: https://github.com/pnpm/pnpm/issues mentioning "trusted publishing" / "OIDC"). Also try `pnpm dlx npm@latest publish <tarball>` as an intermediate path.
+- **npm** bundled with GH runner's Node image catches up to ≥ 11.5.1 (Node 22 LTS ships with 10.x; Node 24 likely brings ≥ 11). Workflow then switches to `pnpm pack` → `for tgz in *.tgz; do npm publish "$tgz" ...; done`, using pnpm for workspace:* rewrite and npm for OIDC auth.
+- A supported `actions/setup-node` flag or separate action (e.g. an npm-flavored `actions/attest-publish`) lands that explicitly handles Trusted Publishing. Search for maintained GH Actions in the marketplace tagged with "npm oidc".
+
+When ready to migrate: drop `env: NODE_AUTH_TOKEN` from `.github/workflows/release.yml`, delete the `NPM_TOKEN` repo secret, revoke the remaining granular token on npm, cut a throwaway `0.1.0-alpha.N+1` to verify, then call it done.
 
 ### 2. Live BigQuery / Sentry / GitHub smoke
 

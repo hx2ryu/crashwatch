@@ -8,6 +8,14 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 
 _No unreleased changes._
 
+## [0.1.0-alpha.5] — 2026-04-22
+
+First alpha to reach npm since `0.1.0-alpha.0`. `alpha.1`–`alpha.4` were tagged for failed OIDC-only experiments and never published to the registry.
+
+### Changed
+- **Reverted OIDC-only publish**. Trusted Publishers are configured on each of the 7 packages, and the GitHub Actions OIDC environment is correctly populated — but pnpm 10.33's `publish` doesn't perform the OIDC → npm token exchange, and the runner's bundled npm is 10.9.7 (OIDC Trusted Publishing needs npm 11.5.1+). Until one of those lands cleanly the release workflow is back to a granular `NPM_TOKEN` secret with "Bypass 2FA" enabled. Provenance (`--provenance`) is preserved — it signs via sigstore independently of publish auth, so the ✓ badge is still attached.
+- `packageManager` stays at `pnpm@10.33.0`; the bump was harmless.
+
 ## [0.1.0-alpha.4] — 2026-04-22
 
 Mechanical re-release. No user-visible behaviour change.
