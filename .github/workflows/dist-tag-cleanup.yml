@@ -1,0 +1,42 @@
+name: dist-tag-cleanup
+
+# One-shot utility: removes the stray `latest` dist-tag from the 7 alpha
+# packages so that bare `npm install @hx2ryu/crashwatch-<pkg>` does not pull
+# pre-alpha code. npm autopopulates `latest` on first publish even when
+# `--tag alpha` is passed; this cleans that up. Run once via workflow_dispatch.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Remove latest dist-tag on every package
+        run: |
+          set +e  # keep going even if a tag was already absent
+          for pkg in \
+            core \
+            cli \
+            provider-firebase \
+            provider-sentry \
+            notifier-webhook \
+            notifier-slack \
+            tracker-github-issues; do
+            full="@hx2ryu/crashwatch-$pkg"
+            echo "--- $full ---"
+            npm dist-tag ls "$full"
+            npm dist-tag rm "$full" latest
+            echo "after:"
+            npm dist-tag ls "$full"
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
