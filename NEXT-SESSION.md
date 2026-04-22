@@ -41,7 +41,8 @@ If a new machine or clone: replicate these three, then `corepack enable && pnpm 
 **What is deferred and why:**
 - No live BigQuery / Sentry / GitHub smoke test yet — depends on real credentials.
 - Two providers alive now; the `CrashProvider` interface has been pressure-tested against Sentry's shape (pagination, signals) but has not yet seen Bugsnag / Rollbar.
-- **0.1.0-alpha.0 SHIPPED** on 2026-04-21: all 7 packages on npm under `@hx2ryu/crashwatch-*` (dist-tag `alpha`), each with SLSA v1 provenance signed by GitHub Actions OIDC. First alpha released via `.github/workflows/release.yml` + a 1-day granular token.
+- **0.1.0-alpha.5 SHIPPED** on 2026-04-22 — second and latest npm alpha. 7 packages on npm under `@hx2ryu/crashwatch-*` (`alpha` == `latest` == `0.1.0-alpha.5`), each with SLSA v1 provenance signed by GitHub Actions OIDC. First alpha (`0.1.0-alpha.0`) shipped 2026-04-21; `alpha.1`–`alpha.4` are stale git tags from failed OIDC-publishing experiments and never reached npm.
+- **Release workflow** (`.github/workflows/release.yml`) runs on `v*.*.*` tag push, pins `pnpm@10.33.0` via `packageManager`, authenticates publish via `NPM_TOKEN` secret (30-day granular token with "Bypass 2FA", rotated 2026-04-22; next rotation due ~2026-05-22), emits `--provenance`. Companion utility `.github/workflows/dist-tag-cleanup.yml` re-points `latest` dist-tag idempotently when it drifts out of sync with `alpha`.
 
 **Last commits on main:** see `git log`. Recent feature work:
 `chore(release): prep 0.1.0-alpha.0 publish dry-run` →

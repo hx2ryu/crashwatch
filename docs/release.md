@@ -61,6 +61,16 @@ npm currently requires a package to exist in the registry before its Trusted Pub
 
 If the repo were private, the workflow would fail the provenance step; drop `--provenance` and the `NPM_CONFIG_PROVENANCE` env in that case.
 
+## Re-pointing `latest` / other dist-tags
+
+npm autopopulates `latest` on first publish even when `--tag alpha` is explicitly passed, and refuses a bare `npm dist-tag rm ... latest` — every package must carry a `latest` entry. When `latest` drifts out of sync with `alpha` (usually after a new alpha release), use `.github/workflows/dist-tag-cleanup.yml`:
+
+```bash
+gh workflow run dist-tag-cleanup.yml -f target_version=0.1.0-alpha.N
+```
+
+The workflow re-points `latest` on all 7 packages to the given version. Safe to re-run; idempotent.
+
 ## Publishing manually (bypass / emergency)
 
 1. `npm login` on a trusted machine.
