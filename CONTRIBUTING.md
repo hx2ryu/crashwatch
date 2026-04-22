@@ -27,14 +27,17 @@ pnpm typecheck
 
 ```
 packages/
-  core/                 # vendor-neutral core
-  cli/                  # command runner
-  provider-firebase/    # reference provider
-  notifier-webhook/     # reference notifier (generic HTTP)
-  notifier-slack/       # convenience wrapper over notifier-webhook
-examples/               # runnable example configs
-schemas/                # JSON Schema for config editor support
-docs/                   # user-facing docs
+  core/                      # vendor-neutral core
+  cli/                       # command runner
+  provider-firebase/         # BigQuery-export provider
+  provider-sentry/           # REST-API provider
+  notifier-webhook/          # reference notifier (generic HTTP)
+  notifier-slack/            # convenience wrapper over notifier-webhook
+  tracker-github-issues/     # GitHub Issues tracker
+examples/                    # runnable example configs
+schemas/                     # JSON Schema for config editor support
+docs/                        # user-facing docs (start with MANUAL.md)
+.github/workflows/           # ci.yml (every push) + release.yml (v*.*.* tag)
 ```
 
 ## Coding conventions
@@ -53,5 +56,6 @@ docs/                   # user-facing docs
 
 ## Releasing (maintainers)
 
-- Packages use independent semver. A release is a git tag of the form `<package>@<version>`.
-- pre-1.0 breaking changes may land in minor releases, but must appear in the package's `CHANGELOG.md`.
+- All 7 packages release together under the same `0.1.0-alpha.N` version for the alpha line; the monorepo CHANGELOG tracks each N.
+- A release is a `v*.*.*` git tag. The [`release.yml`](./.github/workflows/release.yml) workflow builds, tests, and publishes all packages with `--provenance`. See [`docs/release.md`](./docs/release.md) for the runbook and the NPM_TOKEN / dist-tag details.
+- Pre-1.0 breaking changes may land in minor / alpha bumps, but must appear at the top of the root `CHANGELOG.md`.

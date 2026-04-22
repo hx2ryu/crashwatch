@@ -1,54 +1,50 @@
 # Getting started
 
+> Short quick-start. The full guide is in [`MANUAL.md`](./MANUAL.md).
+
 ## Prerequisites
 
 - Node.js ≥ 18
 - pnpm ≥ 9 (`corepack enable` is the simplest install)
-- Credentials for at least one crash-reporting backend
+- Credentials for at least one crash-reporting backend (Sentry auth token, Firebase service-account JSON, …)
 
 ## Install
 
 ```bash
-git clone <your-fork>
-cd crashwatch
-pnpm install
-pnpm -r build
+mkdir my-crashwatch && cd my-crashwatch
+pnpm init -y
+pnpm add -D @hx2ryu/crashwatch-cli@alpha \
+             @hx2ryu/crashwatch-provider-sentry@alpha \
+             @hx2ryu/crashwatch-notifier-slack@alpha
 ```
 
-## Scaffold a config
+(Swap in `provider-firebase`, `notifier-webhook`, `tracker-github-issues` as needed.)
+
+## Scaffold, validate, run
 
 ```bash
-node packages/cli/bin/crashwatch.mjs init --config ./crashwatch.yaml
-```
+pnpm exec crashwatch init --config ./crashwatch.yaml
+# edit crashwatch.yaml
 
-Open the file and fill in:
-1. Provider credentials (or environment variable references)
-2. Notifier URLs (Slack webhook, generic HTTP endpoint, …)
-3. Each app's `providerOptions` (e.g. Firebase appId)
-
-## Validate
-
-```bash
+export SENTRY_AUTH_TOKEN="sntrys_..."
 export SLACK_WEBHOOK_URL="https://hooks.slack.com/..."
-node packages/cli/bin/crashwatch.mjs validate --config ./crashwatch.yaml
+
+pnpm exec crashwatch validate --config ./crashwatch.yaml     # cheap: no external calls
+pnpm exec crashwatch check    --config ./crashwatch.yaml --dry-run
+pnpm exec crashwatch check    --config ./crashwatch.yaml     # live
 ```
-
-`validate` loads the config, resolves every plugin, and prints the resulting app / provider / notifier ids. It does not contact any external service.
-
-## Dry run
-
-```bash
-node packages/cli/bin/crashwatch.mjs check --config ./crashwatch.yaml --dry-run
-```
-
-This performs a full collection pass and writes a snapshot to `./.crashwatch/snapshots/<app>.jsonl`, but prints alerts to stdout instead of dispatching.
 
 ## Schedule
 
-crashwatch is stateless between runs — everything it needs is in the state directory. Schedule it however you like:
+crashwatch is stateless between runs — everything it needs lives in `--state` (default `./.crashwatch`). Any scheduler works:
 
 ```cron
-0 * * * *  cd /srv/crashwatch && node packages/cli/bin/crashwatch.mjs check --config /etc/crashwatch.yaml
+0 * * * *  cd /srv/crashwatch && pnpm exec crashwatch check --config /etc/crashwatch.yaml
 ```
 
 Kubernetes `CronJob`, GitHub Actions `schedule:`, systemd timer — all equally fine.
+
+## Where to next
+
+- [Manual](./MANUAL.md) — concepts, full config reference, scenarios, troubleshooting, extending.
+- Per-package READMEs under [`packages/*/README.md`](../packages) for plugin-specific options.

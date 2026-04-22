@@ -2,9 +2,9 @@
 
 > Vendor-neutral, plugin-based crash observability for mobile and backend apps.
 
-crashwatch polls one or more crash-reporting backends (Firebase Crashlytics, Sentry, Bugsnag, BigQuery exports, your in-house endpoint, …), detects new / regressed / spiking issues against a rolling history, and dispatches alerts to the destination of your choice (Slack, webhook, PagerDuty, issue tracker, …). The core is intentionally small; every integration is a **plugin you opt into**.
+crashwatch polls one or more crash-reporting backends (Firebase Crashlytics, Sentry, …), detects new / regressed / spiking / resurfaced issues against a rolling history, and dispatches alerts to the destination of your choice (Slack, webhook, GitHub Issues, …). The core is intentionally small; every integration is a **plugin you opt into**.
 
-**Status:** pre-alpha. API will change. Not yet published to npm.
+**Status:** pre-alpha, `0.1.0-alpha.5` live on npm under `@hx2ryu/crashwatch-*`. Interfaces will shift before 1.0. For usage start with [`docs/MANUAL.md`](./docs/MANUAL.md).
 
 ## Why
 
@@ -44,42 +44,45 @@ Every crash-reporting vendor ships its own console. Organizations end up running
                    (Jira, Linear, GitHub, …)
 ```
 
-## Packages (monorepo)
+## Packages
+
+Seven packages ship on npm at `0.1.0-alpha.5`, all under the `@alpha` dist-tag:
 
 | Package | Purpose |
 |---|---|
 | [`@hx2ryu/crashwatch-core`](./packages/core) | Types, config loader, detector, JSONL store, plugin interfaces |
 | [`@hx2ryu/crashwatch-cli`](./packages/cli) | `crashwatch init / validate / check` commands |
-| [`@hx2ryu/crashwatch-provider-firebase`](./packages/provider-firebase) | Firebase Crashlytics provider (BigQuery export + CLI modes) |
+| [`@hx2ryu/crashwatch-provider-firebase`](./packages/provider-firebase) | Firebase Crashlytics provider (BigQuery export) |
+| [`@hx2ryu/crashwatch-provider-sentry`](./packages/provider-sentry) | Sentry provider (public REST API) |
 | [`@hx2ryu/crashwatch-notifier-webhook`](./packages/notifier-webhook) | Generic HTTP webhook notifier |
-| [`@hx2ryu/crashwatch-notifier-slack`](./packages/notifier-slack) | Slack Incoming Webhook wrapper |
+| [`@hx2ryu/crashwatch-notifier-slack`](./packages/notifier-slack) | Slack Incoming Webhook convenience wrapper |
+| [`@hx2ryu/crashwatch-tracker-github-issues`](./packages/tracker-github-issues) | GitHub Issues tracker |
 
-Planned:
-- `@hx2ryu/crashwatch-provider-sentry`, `@hx2ryu/crashwatch-provider-bugsnag`, `@hx2ryu/crashwatch-provider-bigquery`
-- `@hx2ryu/crashwatch-tracker-jira`, `@hx2ryu/crashwatch-tracker-linear`, `@hx2ryu/crashwatch-tracker-github`
-- `@hx2ryu/crashwatch-notifier-pagerduty`, `@hx2ryu/crashwatch-notifier-email`
+Candidates tracked in [`docs/ROADMAP.md`](./docs/ROADMAP.md): Bugsnag / Rollbar providers, Jira / Linear trackers, PagerDuty / email notifiers. Nothing committed — a new provider ships when an end user wants to help.
 
 ## Quick start
 
 ```bash
-pnpm install
-pnpm -r build
+mkdir my-crashwatch && cd my-crashwatch
+pnpm init -y
+pnpm add -D @hx2ryu/crashwatch-cli@alpha \
+             @hx2ryu/crashwatch-provider-sentry@alpha \
+             @hx2ryu/crashwatch-notifier-slack@alpha
 
-# scaffold a config
-node packages/cli/bin/crashwatch.mjs init --config ./crashwatch.yaml
+pnpm exec crashwatch init --config ./crashwatch.yaml
+# edit crashwatch.yaml
 
-# edit crashwatch.yaml, then:
-export SLACK_WEBHOOK_URL=...
-node packages/cli/bin/crashwatch.mjs validate --config ./crashwatch.yaml
+export SENTRY_AUTH_TOKEN=sntrys_...
+export SLACK_WEBHOOK_URL=https://hooks.slack.com/...
 
-# dry run — prints alerts but does not send
-node packages/cli/bin/crashwatch.mjs check --config ./crashwatch.yaml --dry-run
-
-# live run, every hour (any cron works)
-# 0 * * * * cd /srv/crashwatch && node packages/cli/bin/crashwatch.mjs check
+pnpm exec crashwatch validate --config ./crashwatch.yaml
+pnpm exec crashwatch check    --config ./crashwatch.yaml --dry-run
+pnpm exec crashwatch check    --config ./crashwatch.yaml
 ```
 
-See [`examples/single-app/config.yaml`](./examples/single-app/config.yaml) for a complete starter.
+Full walk-through + config reference: [`docs/MANUAL.md`](./docs/MANUAL.md).
+
+See [`examples/single-app/config.yaml`](./examples/single-app/config.yaml) for a Firebase + Sentry starter.
 
 ## Writing a plugin
 
@@ -111,11 +114,13 @@ providers:
 
 ## Documentation
 
-- [Getting started](./docs/getting-started.md)
-- [Configuration reference](./docs/configuration.md)
-- [Writing a provider](./docs/writing-a-provider.md)
-- [Writing a notifier](./docs/writing-a-notifier.md)
-- [Playbooks for common crash categories](./docs/playbooks/README.md)
+- **[Manual](./docs/MANUAL.md)** — the master guide; start here.
+- [Release runbook](./docs/release.md)
+- [Public roadmap](./docs/ROADMAP.md)
+- [Writing a provider](./docs/writing-a-provider.md) / [notifier](./docs/writing-a-notifier.md)
+- [Playbooks for common crash categories](./docs/playbooks/README.md) (stubs)
+- Short quick-start: [`docs/getting-started.md`](./docs/getting-started.md)
+- Legacy config ref (superseded by MANUAL): [`docs/configuration.md`](./docs/configuration.md)
 
 ## Contributing
 

@@ -1,5 +1,7 @@
 # Configuration reference
 
+> **Note:** [`MANUAL.md`](./MANUAL.md#configuration-reference) supersedes this file and is kept in sync with the current shipping schema. Kept here for deep-link stability.
+
 The configuration file is YAML (JSON also accepted). It has four top-level keys: `providers`, `notifiers`, `apps`, and an optional `trackers`. `defaults` applies to every app unless overridden.
 
 See [`../schemas/config.schema.json`](../schemas/config.schema.json) for the formal schema (most editors pick this up automatically if you add `# yaml-language-server: $schema=...` at the top of your config).
