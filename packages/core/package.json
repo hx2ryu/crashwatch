@@ -1,6 +1,6 @@
 {
   "name": "@hx2ryu/crashwatch-core",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "Vendor-neutral core types, config loader, and detection engine for crashwatch.",
   "keywords": [
     "crashwatch",

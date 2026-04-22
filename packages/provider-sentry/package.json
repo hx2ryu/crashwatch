@@ -1,6 +1,6 @@
 {
   "name": "@hx2ryu/crashwatch-provider-sentry",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "Sentry provider for crashwatch. Reads issues and events via the public Sentry REST API.",
   "keywords": [
     "crashwatch",

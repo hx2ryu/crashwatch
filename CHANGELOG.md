@@ -8,13 +8,14 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 
 _No unreleased changes._
 
-## [0.1.0-alpha.2] — 2026-04-22
+## [0.1.0-alpha.3] — 2026-04-22
 
-Mechanical re-release — 0.1.0-alpha.1 was tagged but never reached the npm registry; its workflow run failed while bringing up OIDC Trusted Publishing. No user-visible behaviour change.
+Mechanical re-release — 0.1.0-alpha.1 and 0.1.0-alpha.2 were tagged but never reached the npm registry; their workflow runs failed while bringing up OIDC Trusted Publishing (first on pnpm 9 lacking OIDC support, then on a pnpm-action-setup version-mismatch error). No user-visible behaviour change.
 
 ### Changed
-- Release workflow pins `pnpm@10` (via `pnpm/action-setup@v5` input) and installs `npm@latest` before publish — older pnpm/npm versions don't exchange GitHub Actions OIDC claims for an npm publish token.
-- Workflow publishes via **npm Trusted Publishing (OIDC)**. Each of the 7 packages has a Trusted Publisher configured on npmjs.com pointing at `hx2ryu/crashwatch`'s `release.yml`; `NODE_AUTH_TOKEN` is no longer passed. The 1-day bootstrap token used for `0.1.0-alpha.0` will be revoked and the `NPM_TOKEN` repo secret deleted once this release verifies the tokenless path end-to-end.
+- `packageManager` in root `package.json` bumped to `pnpm@10.33.0`. pnpm 10 is the first line that forwards GitHub Actions OIDC claims to npm's token exchange for Trusted Publishing; older versions cause publish PUTs to hit the registry unauthenticated and 404.
+- Release workflow installs `npm@latest` before publish so the client has the Trusted Publishing token-exchange code path.
+- Release workflow publishes via **npm Trusted Publishing (OIDC)**. Each of the 7 packages has a Trusted Publisher configured on npmjs.com pointing at `hx2ryu/crashwatch`'s `release.yml`; `NODE_AUTH_TOKEN` is no longer passed. The 1-day bootstrap token used for `0.1.0-alpha.0` will be revoked and the `NPM_TOKEN` repo secret deleted once this release verifies the tokenless path end-to-end.
 
 ## [0.1.0-alpha.0] — 2026-04-21
 

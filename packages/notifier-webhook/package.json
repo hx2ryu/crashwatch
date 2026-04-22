@@ -1,6 +1,6 @@
 {
   "name": "@hx2ryu/crashwatch-notifier-webhook",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "Generic HTTP webhook notifier for crashwatch. Posts JSON alerts to a URL.",
   "keywords": [
     "crashwatch",
