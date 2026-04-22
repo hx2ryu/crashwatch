@@ -4,12 +4,15 @@ name: release
 # (e.g. `v0.1.0-alpha.0`, `v0.2.0`) is pushed to the repo. Can also be run
 # manually via the "Run workflow" button on the Actions tab.
 #
-# Auth: a granular npm token stored in the `NPM_TOKEN` repo secret, scoped to
-# `@hx2ryu/*` with Read+Write and "Bypass 2FA" enabled. See docs/release.md.
+# Auth: npm Trusted Publishing via GitHub OIDC. Each package under
+# `@hx2ryu/crashwatch-*` has a Trusted Publisher configured on npmjs.com
+# pointing at this repo + workflow, so no long-lived `NPM_TOKEN` is needed —
+# setup-node's `registry-url` plus `id-token: write` is enough for the CLI
+# to mint short-lived OIDC credentials per run. See docs/release.md.
 #
-# Provenance: `id-token: write` + `--provenance` gives tarballs a GitHub-OIDC
-# signed provenance attestation. Since the repo is public, npm displays a ✓
-# "Provenance" badge on each published version's page.
+# Provenance: `--provenance` + `id-token: write` attaches a SLSA v1 provenance
+# statement signed by GitHub Actions OIDC. Repo is public, so npm surfaces
+# the ✓ Provenance badge on every published version.
 
 on:
   push:
@@ -77,5 +80,4 @@ jobs:
             --no-git-checks \
             --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
