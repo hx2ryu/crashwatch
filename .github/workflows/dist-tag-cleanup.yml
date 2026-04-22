@@ -1,12 +1,19 @@
 name: dist-tag-cleanup
 
-# One-shot utility: removes the stray `latest` dist-tag from the 7 alpha
-# packages so that bare `npm install @hx2ryu/crashwatch-<pkg>` does not pull
-# pre-alpha code. npm autopopulates `latest` on first publish even when
-# `--tag alpha` is passed; this cleans that up. Run once via workflow_dispatch.
+# One-shot utility: realigns the stray `latest` dist-tag on the 7 alpha
+# packages so it points at the current alpha version instead of 0.1.0-alpha.0.
+# npm autopopulates `latest` on first publish even when `--tag alpha` is
+# passed, and refuses a bare `npm dist-tag rm ... latest` (every package must
+# carry a `latest`), so we re-point rather than delete. Run via
+# workflow_dispatch, passing the target version as input.
 
 on:
   workflow_dispatch:
+    inputs:
+      target_version:
+        description: 'Version to repoint `latest` at (e.g. 0.1.0-alpha.5)'
+        required: true
+        default: '0.1.0-alpha.5'
 
 permissions:
   contents: read
@@ -20,9 +27,9 @@ jobs:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Remove latest dist-tag on every package
+      - name: Repoint latest dist-tag on every package
         run: |
-          set +e  # keep going even if a tag was already absent
+          set -e
           for pkg in \
             core \
             cli \
@@ -34,7 +41,7 @@ jobs:
             full="@hx2ryu/crashwatch-$pkg"
             echo "--- $full ---"
             npm dist-tag ls "$full"
-            npm dist-tag rm "$full" latest
+            npm dist-tag add "$full@${{ inputs.target_version }}" latest
             echo "after:"
             npm dist-tag ls "$full"
           done
